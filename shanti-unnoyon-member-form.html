@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>সাধারণ সদস্য ফরম — শান্তি ও উন্নয়ন পরিষদ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif; background:#e8ecef; color:#111; }
+  .toolbar { position:sticky; top:0; z-index:10; background:#14532d; color:#fff; padding:10px 14px;
+             display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .toolbar span { font-size:14px; margin-right:6px; }
+  .toolbar button { border:0; border-radius:999px; padding:12px 22px; font-size:16px; font-weight:600;
+                    cursor:pointer; font-family:inherit; }
+  .btn-print { background:#22c55e; color:#fff; }
+  .btn-clear { background:#fff; color:#14532d; }
+  .sheet { background:#fff; width:210mm; min-height:296mm; margin:14px auto; padding:6mm;
+           box-shadow:0 2px 14px rgba(0,0,0,.18); }
+  .frame-outer { border:1px solid #111; padding:1.6mm; min-height:283mm; }
+  .frame { border:1.8px solid #111; padding:6mm 8mm 5mm; min-height:279mm; position:relative; }
+  .head { position:relative; text-align:center; padding-right:0; }
+  h1.org { color:#0a7a43; font-size:20pt; font-weight:700; margin-top:2mm; }
+  .addr { font-weight:600; font-size:11.5pt; margin-top:1mm; }
+  .photo { position:absolute; top:0; right:0; width:27mm; height:33mm; border:1.5px solid #111;
+           display:flex; align-items:center; justify-content:center; text-align:center;
+           color:#333; font-size:9pt; line-height:1.5; cursor:pointer; overflow:hidden; background:#fff; }
+  .photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; }
+  .thick-rule { border-bottom:2.4px solid #111; margin:5mm 0 4mm; }
+  .formtitle { text-align:center; margin-bottom:4mm; }
+  .formtitle span { display:inline-block; border:1.6px solid #111; border-radius:999px;
+                    font-weight:700; font-size:13pt; padding:1.5mm 9mm 2mm; }
+  .row { display:flex; align-items:flex-end; gap:8px; margin-top:8.5px; }
+  .row label { white-space:nowrap; font-size:11pt; }
+  input[type=text], input[type=tel] {
+    font-family:inherit; font-size:11.5pt; border:0; border-bottom:1.6px dotted #444;
+    background:transparent; padding:0 4px 1px; outline:none; min-width:0; }
+  input:focus { border-bottom:1.6px solid #0a7a43; background:#f0fdf4; }
+  .grow { flex:1; } .grow2 { flex:2; } .half { flex:.55; }
+  .decl-title { text-align:center; color:#0a7a43; font-weight:700; font-size:13.5pt;
+                margin:12px 0 6px; text-decoration:underline; text-underline-offset:4px; }
+  .decl { border:1.5px solid #111; padding:8px 11px; font-size:10.8pt; line-height:1.7; text-align:justify; }
+  .decl .namerow { display:flex; align-items:flex-end; gap:8px; margin-bottom:4px; }
+  .footer-note { margin-top:13px; text-align:center; font-size:10.5pt; }
+  .footer-note .line { border-top:1.4px solid #111; margin:0 auto 4px; }
+  .hint { text-align:center; color:#555; font-size:12.5px; margin:10px 6px 22px; }
+  @media screen and (max-width:880px){ .sheet{ zoom:.86 } }
+  @media screen and (max-width:780px){ .sheet{ zoom:.78 } }
+  @media screen and (max-width:700px){ .sheet{ zoom:.70 } }
+  @media screen and (max-width:620px){ .sheet{ zoom:.62 } }
+  @media screen and (max-width:540px){ .sheet{ zoom:.54 } }
+  @media screen and (max-width:470px){ .sheet{ zoom:.47 } }
+
+  @page { size:A4; margin:0; }
+  @media print {
+    body { background:#fff; }
+    .toolbar, .hint { display:none !important; }
+    .sheet { margin:0; box-shadow:none; width:210mm; min-height:auto; padding:5mm; }
+    .frame-outer { min-height:auto; }
+    .frame { min-height:auto; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    input { background:transparent !important; }
+    input::placeholder { color:transparent !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span>✍️ ঘরগুলোতে টাইপ করুন, তারপর প্রিন্ট করুন</span>
+  <button class="btn-print" onclick="window.print()">🖨 প্রিন্ট করো</button>
+  <button class="btn-clear" onclick="clearAll()">🧹 সব মুছো</button>
+</div>
+
+<div class="sheet">
+ <div class="frame-outer">
+  <div class="frame">
+
+    <div class="head">
+      <label class="photo" title="ছবি বসাতে ক্লিক করুন">
+        <span id="photoText">পাসপোর্ট<br>সাইজের<br>ছবি</span>
+        <img id="photoImg" alt="">
+        <input type="file" id="photoFile" accept="image/*" hidden>
+      </label>
+      <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+      <div class="addr">জয়সেনা, তেরখাদা, খুলনা</div>
+    </div>
+
+    <div class="thick-rule"></div>
+    <div class="formtitle"><span>সাধারণ সদস্য ফরম</span></div>
+
+    <div class="row">
+      <label>ফরম নং:</label><input type="text" style="flex:0 0 52mm" id="formNo">
+      <span class="grow"></span>
+      <label>তারিখ:</label><input type="text" style="flex:0 0 52mm" id="formDate">
+    </div>
+
+    <div class="row"><label>১. নাম:</label><input type="text" class="grow" id="name"></div>
+    <div class="row"><label>২. পিতা/স্বামীর নাম:</label><input type="text" class="grow" id="father"></div>
+    <div class="row"><label>৩. মাতার নাম:</label><input type="text" class="grow" id="mother"></div>
+
+    <div class="row">
+      <label>৪. ঠিকানা: গ্রাম:</label><input type="text" class="grow2" id="village">
+      <label>ডাকঘর:</label><input type="text" class="grow" id="postoffice">
+    </div>
+    <div class="row">
+      <label>থানা/উপজেলা:</label><input type="text" class="grow" id="upazila">
+      <label>জেলা:</label><input type="text" class="grow" id="district">
+    </div>
+
+    <div class="row"><label>৫. জাতীয় পরিচয়পত্র/জন্মনিবন্ধন নং:</label><input type="text" class="grow" id="nid"></div>
+    <div class="row"><label>৬. জন্ম তারিখ:</label><input type="text" class="grow" id="dob"></div>
+    <div class="row"><label>৭. শিক্ষাগত যোগ্যতা:</label><input type="text" class="grow" id="education"></div>
+    <div class="row"><label>৮. পেশা:</label><input type="text" class="grow" id="occupation"></div>
+    <div class="row"><label>৯. মোবাইল নং:</label><input type="tel" class="grow" id="mobile"></div>
+    <div class="row"><label>১০. রক্তের গ্রুপ:</label><input type="text" class="half" id="blood"></div>
+
+    <div class="row"><label>১১. কোনো সামাজিক সংগঠন বা প্রতিষ্ঠানের সাথে যুক্ত থাকলে তার পূর্ণ বিবরণ:</label></div>
+    <div class="row"><input type="text" class="grow" id="otherOrg1"></div>
+    <div class="row"><input type="text" class="grow" id="otherOrg2"></div>
+
+    <div class="decl-title">অঙ্গীকারনামা</div>
+    <div class="decl">
+      <div class="namerow"><label>আমি নিম্নস্বাক্ষরকারী</label><input type="text" class="grow" id="declName"></div>
+      এই মর্মে অঙ্গীকার করছি যে, উপরের প্রদত্ত সকল তথ্য আমার জানা মতে সঠিক এবং কোন তথ্য গোপন করিনি।
+      আমি “শান্তি ও উন্নয়ন পরিষদ”-এর উদ্দেশ্য, নিয়ম-কানুন ও নীতিমালা মেনে চলব। কল্যাণমূলক কার্যক্রমে
+      আন্তরিকভাবে সহযোগিতা করব। সংগঠনের শান্তি, উন্নয়ন ও কল্যাণের স্বার্থে আমি সব সময় দায়িত্বশীল
+      ভূমিকা পালন করব। স্বার্থবিরোধী কোনো কর্মকাণ্ডে জড়িত হব না।
+    </div>
+
+    <div class="row" style="margin-top:13px">
+      <label>আবেদনকারীর স্বাক্ষর:</label><input type="text" class="grow">
+      <label>তারিখ:</label><input type="text" class="grow" id="signDate">
+    </div>
+    <div class="row">
+      <label>আবেদনকারীর নাম:</label><input type="text" class="grow" id="signName">
+      <label>মোবাইল নং:</label><input type="tel" class="grow" id="signMobile">
+    </div>
+
+    <div class="footer-note">
+      <div class="line"></div>
+      আমি উপরের তথ্য সঠিকভাবে প্রদান করেছি এবং অঙ্গীকারনামার শর্তসমূহ বুঝে স্বাক্ষর করেছি।
+    </div>
+
+  </div>
+ </div>
+</div>
+
+<p class="hint">💡 নাম আর মোবাইল একবার লিখলেই নিচের ঘরগুলোতে অটো বসে যাবে। ছবির বাক্সে ক্লিক করলে ছবি বসানো যাবে — প্রিন্টেও ছবি আসবে।</p>
+
+<script>
+  document.getElementById('name').addEventListener('input', function () {
+    document.getElementById('declName').value = this.value;
+    document.getElementById('signName').value = this.value;
+  });
+  document.getElementById('mobile').addEventListener('input', function () {
+    document.getElementById('signMobile').value = this.value;
+  });
+  document.getElementById('photoFile').addEventListener('change', function () {
+    var f = this.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function (e) {
+      var img = document.getElementById('photoImg');
+      img.src = e.target.result; img.style.display = 'block';
+      document.getElementById('photoText').style.display = 'none';
+    };
+    r.readAsDataURL(f);
+  });
+  function clearAll() {
+    if (!confirm('সব লেখা মুছে যাবে — নিশ্চিত?')) return;
+    document.querySelectorAll('input[type=text], input[type=tel]').forEach(function (i) { i.value = ''; });
+    var img = document.getElementById('photoImg');
+    img.src = ''; img.style.display = 'none';
+    document.getElementById('photoText').style.display = 'block';
+  }
+</script>
+</body>
+</html>

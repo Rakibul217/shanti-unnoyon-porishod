@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ম্যানেজার ড্যাশবোর্ড — শান্তি ও উন্নয়ন পরিষদ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif; background:#edf2ef; color:#14231a; }
+  header.top { background:linear-gradient(135deg,#0b3d24,#14532d); color:#fff; padding:14px 16px 12px;
+               position:sticky; top:0; z-index:20; box-shadow:0 2px 10px rgba(0,0,0,.25); }
+  header.top h1 { font-size:21px; font-weight:700; }
+  header.top .sub { font-size:12.5px; opacity:.85; }
+  header.top .mgr { float:right; background:#22c55e; color:#fff; border-radius:999px; padding:4px 12px;
+                    font-size:12.5px; font-weight:700; margin-top:2px; }
+  nav.tabs { display:flex; gap:7px; overflow-x:auto; padding:10px 10px 4px; position:sticky; top:64px; z-index:19;
+             background:#edf2ef; scrollbar-width:none; }
+  nav.tabs::-webkit-scrollbar { display:none; }
+  nav.tabs button { flex:none; border:0; border-radius:999px; padding:11px 16px; font-size:14.5px; font-weight:600;
+                    font-family:inherit; cursor:pointer; background:#fff; color:#14532d; min-height:48px;
+                    box-shadow:0 1px 4px rgba(0,0,0,.08); }
+  nav.tabs button.active { background:#14532d; color:#fff; }
+  nav.tabs .badge { background:#dc2626; color:#fff; border-radius:999px; padding:0 7px; font-size:12px; margin-left:4px; }
+  main { max-width:1060px; margin:0 auto; padding:12px 12px 40px; }
+  .view { display:none; } .view.active { display:block; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:10px; }
+  .card { background:#fff; border-radius:14px; padding:14px; box-shadow:0 1px 5px rgba(0,0,0,.07); }
+  .card .ic { font-size:22px; }
+  .card .num { font-size:24px; font-weight:700; margin-top:2px; }
+  .card .lbl { font-size:13px; color:#4b5a50; }
+  .card.alert { background:#fef2f2; } .card.good { background:#f0fdf4; }
+  .panel { background:#fff; border-radius:14px; padding:16px; box-shadow:0 1px 5px rgba(0,0,0,.07); margin-top:12px; }
+  .panel h2 { font-size:17px; margin-bottom:10px; color:#14532d; }
+  .qa { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .btn { border:0; border-radius:999px; padding:12px 20px; font-size:15px; font-weight:700; font-family:inherit;
+         cursor:pointer; background:#16a34a; color:#fff; min-height:48px; }
+  .btn.light { background:#e7f3ea; color:#14532d; }
+  .btn.danger { background:#dc2626; }
+  .btn.small { padding:8px 14px; min-height:40px; font-size:13.5px; }
+  .inp, select.inp, input.inp { font-family:inherit; font-size:15px; padding:11px 12px; border:1.6px solid #c9d6cc;
+         border-radius:10px; outline:none; background:#fff; width:100%; }
+  .inp:focus { border-color:#16a34a; }
+  .fgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .fgrid label { font-size:13px; font-weight:600; color:#33503c; display:block; margin-bottom:4px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { padding:9px 8px; border-bottom:1px solid #e3eae5; text-align:left; vertical-align:top; }
+  th { color:#33503c; font-size:13px; }
+  .mrow { display:flex; align-items:center; gap:11px; padding:10px 6px; border-bottom:1px solid #e3eae5; cursor:pointer; }
+  .mrow:hover { background:#f4faf5; }
+  .mrow img, .mrow .avatar { width:46px; height:46px; border-radius:50%; object-fit:cover; background:#dcefe0;
+         display:flex; align-items:center; justify-content:center; font-size:20px; flex:none; }
+  .mrow .nm { font-weight:700; font-size:15.5px; }
+  .mrow .meta { font-size:12.5px; color:#5a6f61; }
+  .chip { display:inline-block; border-radius:8px; padding:3px 9px; font-size:12.5px; font-weight:700; }
+  .chip.ok { background:#dcfce7; color:#166534; } .chip.due { background:#fee2e2; color:#991b1b; }
+  .chip.wait { background:#fef9c3; color:#854d0e; }
+  .mgrid { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .mchip { border-radius:9px; padding:5px 10px; font-size:13px; font-weight:600; }
+  .mchip.ok { background:#dcfce7; color:#166534; } .mchip.due { background:#fee2e2; color:#991b1b; }
+  .mchip.cur { outline:2px solid #14532d; }
+  .overlay { position:fixed; inset:0; background:rgba(10,25,15,.55); z-index:50; display:none;
+             align-items:flex-start; justify-content:center; overflow:auto; padding:14px 8px; }
+  .overlay.open { display:flex; }
+  .modal { background:#fff; border-radius:16px; max-width:640px; width:100%; padding:18px; margin:auto 0; }
+  .modal h3 { color:#14532d; font-size:18px; }
+  .kv { display:grid; grid-template-columns:130px 1fr; gap:4px 10px; font-size:14.5px; margin-top:10px; }
+  .kv b { color:#33503c; font-weight:600; }
+  .empty { text-align:center; color:#6b7f70; padding:22px 8px; font-size:14.5px; }
+  .note { font-size:12.5px; color:#5a6f61; margin-top:8px; }
+  .sec-title { font-size:16px; font-weight:700; color:#14532d; margin:16px 0 8px; }
+  .toast { position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(80px); background:#14532d; color:#fff;
+           padding:12px 22px; border-radius:999px; font-weight:700; font-size:15px; z-index:99; transition:transform .25s;
+           box-shadow:0 4px 18px rgba(0,0,0,.3); max-width:92vw; text-align:center; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  .search-row { display:flex; gap:8px; } .search-row .inp { flex:1; }
+  a.filelink { display:flex; align-items:center; gap:10px; background:#f4faf5; border:1.5px solid #cfe5d4; border-radius:12px;
+               padding:13px 14px; text-decoration:none; color:#14532d; font-weight:700; margin-top:9px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <span class="mgr">👤 ম্যানেজার প্যানেল</span>
+  <h1>শান্তি ও উন্নয়ন পরিষদ</h1>
+  <div class="sub">চর জয়সেনা, তেরখাদা, খুলনা — সব হিসাব এক জায়গায়, সেকেন্ডে</div>
+</header>
+
+<nav class="tabs">
+  <button data-view="dash" class="active" onclick="go('dash')">📊 ড্যাশবোর্ড</button>
+  <button data-view="members" onclick="go('members')">👥 সদস্য</button>
+  <button data-view="apps" onclick="go('apps')">📥 আবেদন<span class="badge" id="appBadge" style="display:none">0</span></button>
+  <button data-view="deposits" onclick="go('deposits')">💰 জমা</button>
+  <button data-view="ledger" onclick="go('ledger')">🧾 আয়-ব্যয়</button>
+  <button data-view="apply" onclick="go('apply')">📝 আবেদন ফরম</button>
+  <button data-view="more" onclick="go('more')">📋 ফরম ও গঠনতন্ত্র</button>
+</nav>
+
+<main>
+
+<!-- ================= ড্যাশবোর্ড ================= -->
+<section class="view active" id="view-dash">
+  <div class="cards" id="statCards"></div>
+  <div class="qa">
+    <button class="btn" onclick="go('deposits');setTimeout(()=>document.getElementById('depMember').focus(),80)">➕ জমা যোগ করো</button>
+    <button class="btn light" onclick="go('ledger')">➕ আয়/ব্যয় যোগ করো</button>
+    <button class="btn light" onclick="go('members');setTimeout(()=>document.getElementById('memberSearch').focus(),80)">🔎 সদস্য খুঁজো</button>
+    <button class="btn light" onclick="go('apply')">📝 নতুন আবেদন</button>
+  </div>
+  <div class="panel">
+    <h2>🕘 সাম্প্রতিক লেনদেন</h2>
+    <div id="recentList"></div>
+  </div>
+  <div class="panel">
+    <h2>⚠ এই মাসে যাদের চাঁদা বকেয়া</h2>
+    <div id="dueList"></div>
+  </div>
+</section>
+
+<!-- ================= সদস্য ================= -->
+<section class="view" id="view-members">
+  <div class="search-row">
+    <input class="inp" id="memberSearch" placeholder="সদস্য আইডি, নাম বা মোবাইল দিয়ে খুঁজুন… (যেমন PDC-001)" oninput="renderMembers()">
+  </div>
+  <div class="panel" style="padding:6px 12px">
+    <div id="memberList"></div>
+  </div>
+  <p class="note">যেকোনো সদস্যের নামে চাপ দিলেই পুরো প্রোফাইল খুলবে — সব তথ্য, কোন মাসে জমা দিয়েছে, কোন মাস বকেয়া, মোট কত জমা — সব একসাথে।</p>
+</section>
+
+<!-- ================= আবেদনসমূহ ================= -->
+<section class="view" id="view-apps">
+  <div class="panel">
+    <h2>📥 অপেক্ষমাণ আবেদন</h2>
+    <div id="pendingApps"></div>
+  </div>
+  <div class="panel">
+    <h2>🗂 আগের সিদ্ধান্ত</h2>
+    <div id="pastApps"></div>
+  </div>
+</section>
+
+<!-- ================= জমা ================= -->
+<section class="view" id="view-deposits">
+  <div class="panel">
+    <h2>➕ নতুন জমা (চাঁদা) যোগ করো</h2>
+    <div class="fgrid">
+      <div><label>সদস্য</label><select class="inp" id="depMember"></select></div>
+      <div><label>কোন মাসের চাঁদা</label><input class="inp" type="month" id="depMonth"></div>
+      <div><label>টাকার পরিমাণ (৳)</label><input class="inp" type="number" id="depAmount" value="1000"></div>
+      <div><label>জমার তারিখ</label><input class="inp" type="date" id="depDate"></div>
+      <div><label>মাধ্যম</label><select class="inp" id="depMethod"><option>নগদ</option><option>bKash</option><option>Nagad</option><option>ব্যাংক</option></select></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn" onclick="addDeposit()">✅ জমা সেভ করো</button></div>
+    <p class="note">সেভ করলেই সদস্যের প্রোফাইল, ড্যাশবোর্ডের হিসাব — সব জায়গায় সাথে সাথে আপডেট হয়ে যাবে।</p>
+  </div>
+  <div class="panel">
+    <h2>📅 এই মাসের জমার অবস্থা</h2>
+    <div id="monthStatus"></div>
+  </div>
+  <div class="panel">
+    <h2>🧾 সব জমার তালিকা</h2>
+    <div id="depositList"></div>
+  </div>
+</section>
+
+<!-- ================= আয়-ব্যয় ================= -->
+<section class="view" id="view-ledger">
+  <div class="panel">
+    <h2>➕ আয় / ব্যয় যোগ করো</h2>
+    <div class="fgrid">
+      <div><label>ধরন</label><select class="inp" id="ledType" onchange="fillCats()"><option value="in">💚 আয় (চাঁদা ছাড়া)</option><option value="out">❤️ ব্যয়</option></select></div>
+      <div><label>খাত</label><select class="inp" id="ledCat"></select></div>
+      <div><label>টাকার পরিমাণ (৳)</label><input class="inp" type="number" id="ledAmount"></div>
+      <div><label>তারিখ</label><input class="inp" type="date" id="ledDate"></div>
+      <div style="grid-column:1/-1"><label>বিবরণ</label><input class="inp" id="ledDesc" placeholder="কী বাবদ / কার কাছ থেকে"></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn" onclick="addLedger()">✅ সেভ করো</button></div>
+    <p class="note">গঠনতন্ত্রের ধারা ১০ অনুযায়ী সব আয়-ব্যয় লিখিতভাবে থাকে — খাত অনুযায়ী ভাগ করে দেখাও হবে। সদস্যদের মাসিক চাঁদা এখানে নয়, "জমা" ট্যাবে যোগ করো।</p>
+  </div>
+  <div class="panel">
+    <h2>📊 খাত অনুযায়ী হিসাব</h2>
+    <div id="catSummary"></div>
+  </div>
+  <div class="panel">
+    <h2>🧾 সব আয়-ব্যয়ের তালিকা</h2>
+    <div id="ledgerList"></div>
+  </div>
+</section>
+
+<!-- ================= আবেদন ফরম (সবার জন্য) ================= -->
+<section class="view" id="view-apply">
+  <div class="panel">
+    <h2>📝 সাধারণ সদস্য আবেদন ফরম</h2>
+    <p class="note" style="margin:0 0 12px">সব তথ্য বাংলায় পূরণ করুন। জমা দিলে আবেদনটি ম্যানেজারের "আবেদন" ট্যাবে যাবে; অনুমোদন পেলে অটো সদস্য আইডি তৈরি হবে।</p>
+    <div class="fgrid">
+      <div><label>১. নাম *</label><input class="inp" id="a_name"></div>
+      <div><label>২. পিতা/স্বামীর নাম</label><input class="inp" id="a_father"></div>
+      <div><label>৩. মাতার নাম</label><input class="inp" id="a_mother"></div>
+      <div><label>৪. গ্রাম</label><input class="inp" id="a_village"></div>
+      <div><label>ডাকঘর</label><input class="inp" id="a_post"></div>
+      <div><label>থানা/উপজেলা</label><input class="inp" id="a_upazila"></div>
+      <div><label>জেলা</label><input class="inp" id="a_district"></div>
+      <div><label>৫. জাতীয় পরিচয়পত্র/জন্মনিবন্ধন নং *</label><input class="inp" id="a_nid"></div>
+      <div><label>৬. জন্ম তারিখ</label><input class="inp" id="a_dob" placeholder="যেমন: ১৫/০৩/২০০২"></div>
+      <div><label>৭. শিক্ষাগত যোগ্যতা</label><input class="inp" id="a_edu"></div>
+      <div><label>৮. পেশা</label><input class="inp" id="a_job"></div>
+      <div><label>৯. মোবাইল নং *</label><input class="inp" id="a_mobile" inputmode="tel"></div>
+      <div><label>১০. রক্তের গ্রুপ</label><select class="inp" id="a_blood">
+        <option value="">— বেছে নিন —</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+        <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+      <div style="grid-column:1/-1"><label>১১. অন্য সংগঠন/প্রতিষ্ঠানের সাথে যুক্ত থাকলে বিবরণ</label><input class="inp" id="a_other"></div>
+      <div><label>📷 পাসপোর্ট সাইজের ছবি</label><input class="inp" type="file" id="a_photo" accept="image/*"></div>
+      <div><label>🪪 NID ছবি (সামনে)</label><input class="inp" type="file" id="a_nidf" accept="image/*"></div>
+      <div><label>🪪 NID ছবি (পেছনে)</label><input class="inp" type="file" id="a_nidb" accept="image/*"></div>
+    </div>
+    <label style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;font-size:14.5px;cursor:pointer">
+      <input type="checkbox" id="a_agree" style="width:20px;height:20px;margin-top:2px">
+      <span>আমি অঙ্গীকার করছি যে, উপরের সকল তথ্য সঠিক এবং আমি "শান্তি ও উন্নয়ন পরিষদ"-এর গঠনতন্ত্র, নিয়ম-কানুন ও নীতিমালা মেনে চলব।</span>
+    </label>
+    <div style="margin-top:14px"><button class="btn" onclick="submitApplication()">📨 আবেদন জমা দিন</button></div>
+  </div>
+</section>
+
+<!-- ================= ফরম ও গঠনতন্ত্র ================= -->
+<section class="view" id="view-more">
+  <div class="panel">
+    <h2>📋 সব ফরম ও গঠনতন্ত্র</h2>
+    <p class="note" style="margin:0">নিচের ফাইল দুটি এই ড্যাশবোর্ডের পাশাপাশি একই জায়গায় রাখলেই বোতামগুলো কাজ করবে।</p>
+    <a class="filelink" href="shanti-unnoyon-forms-pack.html">🧾 সব ফরমের প্যাক — রসিদ, সভার নোটিশ, কার্যবিবরণী, কারণ দর্শানো, টাকা উত্তোলন, বাতিলের নোটিশ, নিরীক্ষা প্রতিবেদন</a>
+    <a class="filelink" href="shanti-unnoyon-gothontontro-o-form.html">📜 গঠনতন্ত্র (১৭ ধারা) + আবেদন ফরম — একসাথে</a>
+    <a class="filelink" href="shanti-unnoyon-member-form.html">📄 শুধু সদস্য ফরম (খালি প্রিন্টের জন্য)</a>
+  </div>
+  <div class="panel">
+    <h2>💾 ডেটা ব্যাকআপ</h2>
+    <p class="note" style="margin:0 0 10px">ড্যাশবোর্ডের সব ডেটা এই ব্রাউজারেই থাকে। মাঝে মাঝে ব্যাকআপ ডাউনলোড করে রাখুন — ফোন বদলালে বা ডেটা মুছে গেলে ব্যাকআপ ফাইল দিয়ে ফিরিয়ে আনা যাবে।</p>
+    <div class="qa" style="margin-top:0">
+      <button class="btn light" onclick="exportData()">⬇ ব্যাকআপ ডাউনলোড</button>
+      <label class="btn light" style="display:inline-flex;align-items:center;cursor:pointer">⬆ ব্যাকআপ ফিরিয়ে আনো<input type="file" id="importFile" accept=".json" hidden onchange="importData(this)"></label>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- প্রোফাইল পপআপ -->
+<div class="overlay" id="profileOverlay" onclick="if(event.target===this)closeProfile()">
+  <div class="modal" id="profileModal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= ডেটা ================= */
+var KEY = 'pdcDashV1';
+var FEE = 1000;
+var data;
+function seedData() {
+  return {
+    members: [
+      { id:'PDC-001', name:'বুলবুল মোল্যা', role:'সভাপতি', father:'', mother:'', village:'চর জয়সেনা', post:'', upazila:'তেরখাদা', district:'খুলনা', nid:'', dob:'', edu:'', job:'', mobile:'', blood:'', other:'', photo:'', join:'2026-10' },
+      { id:'PDC-002', name:'তাহিদুল ইসলাম', role:'সহসভাপতি', father:'', mother:'', village:'চর জয়সেনা', post:'', upazila:'তেরখাদা', district:'খুলনা', nid:'', dob:'', edu:'', job:'', mobile:'', blood:'', other:'', photo:'', join:'2026-10' },
+      { id:'PDC-003', name:'আজিম হোসেন', role:'সাধারণ সম্পাদক', father:'', mother:'', village:'চর জয়সেনা', post:'', upazila:'তেরখাদা', district:'খুলনা', nid:'', dob:'', edu:'', job:'', mobile:'', blood:'', other:'', photo:'', join:'2026-10' },
+      { id:'PDC-004', name:'রহিম বিশ্বাস', role:'যুগ্ম সাধারণ সম্পাদক', father:'', mother:'', village:'চর জয়সেনা', post:'', upazila:'তেরখাদা', district:'খুলনা', nid:'', dob:'', edu:'', job:'', mobile:'', blood:'', other:'', photo:'', join:'2026-10' },
+      { id:'PDC-005', name:'রাকিবুল ইসলাম', role:'ম্যানেজার', father:'', mother:'', village:'জয়সেনা', post:'পানতিতা', upazila:'তেরখাদা', district:'খুলনা', nid:'', dob:'', edu:'', job:'ছাত্র', mobile:'', blood:'A+', other:'', photo:'', join:'2026-10' }
+    ],
+    applications: [],
+    deposits: [],
+    ledger: []
+  };
+}
+function load() {
+  try { var raw = localStorage.getItem(KEY); data = raw ? JSON.parse(raw) : seedData(); }
+  catch (e) { data = seedData(); }
+  if (!data.members) data = seedData();
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { toast('⚠ জায়গা শেষ — ব্যাকআপ নিয়ে পুরনো ছবি কমান'); } }
+
+/* ================= হেল্পার ================= */
+var BN = '০১২৩৪৫৬৭৮৯';
+function bn(n) { return String(n).replace(/[0-9]/g, function (d) { return BN[+d]; }); }
+function money(n) { return '৳' + bn(Number(n || 0).toLocaleString('en-IN')); }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function todayStr() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function curMonth() { return todayStr().slice(0, 7); }
+var MONTHS_BN = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+function monthName(ym) { if (!ym) return ''; var p = ym.split('-'); return MONTHS_BN[+p[1]-1] + ' ' + bn(p[0]); }
+function monthsBetween(fromYm, toYm) {
+  var out = [], a = fromYm.split('-'), b = toYm.split('-');
+  var y = +a[0], m = +a[1], ey = +b[0], em = +b[1];
+  while (y < ey || (y === ey && m <= em)) { out.push(y + '-' + String(m).padStart(2,'0')); m++; if (m > 12) { m = 1; y++; } }
+  return out;
+}
+function memberById(id) { return data.members.find(function (m) { return m.id === id; }); }
+function paidMonths(memberId) {
+  var s = {}; data.deposits.forEach(function (d) { if (d.memberId === memberId) s[d.month] = (s[d.month] || 0) + (+d.amount || 0); }); return s;
+}
+function memberTotal(memberId) { return data.deposits.filter(function (d) { return d.memberId === memberId; }).reduce(function (s, d) { return s + (+d.amount || 0); }, 0); }
+var toastTimer;
+function toast(msg) {
+  var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+}
+function go(view) {
+  document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + view); });
+  document.querySelectorAll('nav.tabs button').forEach(function (b) { b.classList.toggle('active', b.dataset.view === view); });
+  window.scrollTo(0, 0);
+}
+</script>
+
+<script>
+/* ================= ড্যাশবোর্ড ================= */
+function renderDash() {
+  var cm = curMonth();
+  var totalDep = data.deposits.reduce(function (s, d) { return s + (+d.amount || 0); }, 0);
+  var totalIn = data.ledger.filter(function (l) { return l.type === 'in'; }).reduce(function (s, l) { return s + (+l.amount || 0); }, 0);
+  var totalOut = data.ledger.filter(function (l) { return l.type === 'out'; }).reduce(function (s, l) { return s + (+l.amount || 0); }, 0);
+  var fund = totalDep + totalIn - totalOut;
+  var thisDep = data.deposits.filter(function (d) { return d.month === cm; });
+  var thisSum = thisDep.reduce(function (s, d) { return s + (+d.amount || 0); }, 0);
+  var dueMembers = data.members.filter(function (m) {
+    return m.join <= cm && !data.deposits.some(function (d) { return d.memberId === m.id && d.month === cm; });
+  });
+  var pending = data.applications.filter(function (a) { return a.status === 'pending'; }).length;
+  var cards = [
+    { ic:'👥', num: bn(data.members.length) + ' জন', lbl:'মোট সদস্য' },
+    { ic:'🏦', num: money(fund), lbl:'বর্তমান তহবিল', cls:'good' },
+    { ic:'💰', num: money(totalDep), lbl:'মোট চাঁদা জমা' },
+    { ic:'📅', num: money(thisSum), lbl: monthName(cm) + ' — আদায় (' + bn(thisDep.length) + ' জন)' },
+    { ic:'⚠', num: bn(dueMembers.length) + ' জন', lbl:'এই মাসে বকেয়া (' + money(dueMembers.length * FEE) + ')', cls:'alert' },
+    { ic:'🧾', num: money(totalOut), lbl:'মোট খরচ' },
+    { ic:'📥', num: bn(pending) + 'টি', lbl:'অপেক্ষমাণ আবেদন', cls: pending ? 'alert' : '' }
+  ];
+  document.getElementById('statCards').innerHTML = cards.map(function (c) {
+    return '<div class="card ' + (c.cls || '') + '"><div class="ic">' + c.ic + '</div><div class="num">' + c.num + '</div><div class="lbl">' + c.lbl + '</div></div>';
+  }).join('');
+
+  var recent = [];
+  data.deposits.forEach(function (d) { var m = memberById(d.memberId); recent.push({ date: d.date, txt: '💰 ' + esc(m ? m.name : d.memberId) + ' — ' + monthName(d.month) + '-এর চাঁদা', amt: +d.amount }); });
+  data.ledger.forEach(function (l) { recent.push({ date: l.date, txt: (l.type === 'in' ? '💚 আয়: ' : '❤️ খরচ: ') + esc(l.cat) + (l.desc ? ' — ' + esc(l.desc) : ''), amt: l.type === 'in' ? +l.amount : -l.amount }); });
+  recent.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  document.getElementById('recentList').innerHTML = recent.length ? recent.slice(0, 6).map(function (r) {
+    return '<div class="mrow" style="cursor:default"><div style="flex:1"><div class="nm" style="font-size:14.5px">' + r.txt + '</div><div class="meta">' + bn(r.date) + '</div></div><b style="color:' + (r.amt >= 0 ? '#166534' : '#991b1b') + '">' + (r.amt >= 0 ? '+' : '−') + money(Math.abs(r.amt)) + '</b></div>';
+  }).join('') : '<div class="empty">এখনো কোনো লেনদেন হয়নি। প্রথম জমা যোগ করলেই এখানে দেখা যাবে।</div>';
+
+  document.getElementById('dueList').innerHTML = dueMembers.length ? dueMembers.map(function (m) {
+    return '<div class="mrow" onclick="openProfile(\'' + m.id + '\')">' + avatarHtml(m) + '<div style="flex:1"><div class="nm">' + esc(m.name) + '</div><div class="meta">' + m.id + (m.mobile ? ' · ' + esc(m.mobile) : '') + '</div></div><span class="chip due">বকেয়া ' + money(FEE) + '</span></div>';
+  }).join('') : '<div class="empty">🎉 এই মাসে কারো চাঁদা বকেয়া নেই!</div>';
+
+  var badge = document.getElementById('appBadge');
+  badge.style.display = pending ? 'inline-block' : 'none'; badge.textContent = bn(pending);
+}
+function avatarHtml(m) {
+  return m.photo ? '<img src="' + m.photo + '" alt="">' : '<div class="avatar">👤</div>';
+}
+
+/* ================= সদস্য তালিকা ও প্রোফাইল ================= */
+function renderMembers() {
+  var q = (document.getElementById('memberSearch').value || '').trim().toLowerCase();
+  var cm = curMonth();
+  var list = data.members.filter(function (m) {
+    return !q || m.id.toLowerCase().indexOf(q) >= 0 || m.name.toLowerCase().indexOf(q) >= 0 || (m.mobile || '').indexOf(q) >= 0;
+  });
+  document.getElementById('memberList').innerHTML = list.length ? list.map(function (m) {
+    var paid = data.deposits.some(function (d) { return d.memberId === m.id && d.month === cm; });
+    return '<div class="mrow" onclick="openProfile(\'' + m.id + '\')">' + avatarHtml(m) +
+      '<div style="flex:1"><div class="nm">' + esc(m.name) + (m.role ? ' <span class="chip ok" style="font-size:11px">' + esc(m.role) + '</span>' : '') + '</div>' +
+      '<div class="meta">' + m.id + ' · মোট জমা ' + money(memberTotal(m.id)) + (m.mobile ? ' · ' + esc(m.mobile) : '') + '</div></div>' +
+      '<span class="chip ' + (paid ? 'ok' : 'due') + '">' + (paid ? 'এই মাস ✓' : 'এই মাস বকেয়া') + '</span></div>';
+  }).join('') : '<div class="empty">কাউকে পাওয়া গেল না।</div>';
+}
+function openProfile(id) {
+  var m = memberById(id); if (!m) return;
+  var cm = curMonth();
+  var months = monthsBetween(m.join, cm);
+  var paid = paidMonths(id);
+  var missed = months.filter(function (mo) { return !paid[mo]; });
+  var rows = [
+    ['সদস্য আইডি', m.id], ['পদ', m.role || 'সাধারণ সদস্য'], ['পিতা/স্বামীর নাম', m.father], ['মাতার নাম', m.mother],
+    ['ঠিকানা', [m.village, m.post ? 'ডাকঘর: ' + m.post : '', m.upazila, m.district].filter(Boolean).join(', ')],
+    ['NID/জন্মনিবন্ধন', m.nid], ['জন্ম তারিখ', m.dob], ['শিক্ষাগত যোগ্যতা', m.edu], ['পেশা', m.job],
+    ['মোবাইল', m.mobile], ['রক্তের গ্রুপ', m.blood], ['যোগদান', monthName(m.join)], ['অন্য সংগঠন', m.other]
+  ].filter(function (r) { return r[1]; });
+  var html = '<div style="display:flex;gap:13px;align-items:center">' + avatarHtml(m) +
+    '<div><h3>' + esc(m.name) + '</h3><div class="meta" style="color:#5a6f61;font-size:13px">' + m.id + ' · যোগদান: ' + monthName(m.join) + '</div></div>' +
+    '<button class="btn small light" style="margin-left:auto" onclick="closeProfile()">✕ বন্ধ</button></div>' +
+    '<div class="kv">' + rows.map(function (r) { return '<b>' + r[0] + '</b><span>' + esc(r[1]) + '</span>'; }).join('') + '</div>' +
+    '<div class="sec-title">💰 মাসভিত্তিক জমার হিসাব</div>' +
+    '<div style="font-size:14.5px">মোট জমা: <b>' + money(memberTotal(id)) + '</b> · বকেয়া মাস: <b style="color:#991b1b">' + bn(missed.length) + 'টি</b>' + (missed.length ? ' (' + money(missed.length * FEE) + ')' : '') + '</div>' +
+    '<div class="mgrid">' + months.map(function (mo) {
+      var ok = !!paid[mo];
+      return '<span class="mchip ' + (ok ? 'ok' : 'due') + (mo === cm ? ' cur' : '') + '">' + monthName(mo) + (ok ? ' ✓ ' + money(paid[mo]) : ' ✗ বকেয়া') + '</span>';
+    }).join('') + '</div>' +
+    '<div class="qa"><button class="btn" onclick="closeProfile();go(\'deposits\');document.getElementById(\'depMember\').value=\'' + id + '\'">➕ এই সদস্যের জমা যোগ করো</button></div>';
+  document.getElementById('profileModal').innerHTML = html;
+  document.getElementById('profileOverlay').classList.add('open');
+}
+function closeProfile() { document.getElementById('profileOverlay').classList.remove('open'); }
+
+/* ================= আবেদন ================= */
+function renderApps() {
+  var pend = data.applications.filter(function (a) { return a.status === 'pending'; });
+  var past = data.applications.filter(function (a) { return a.status !== 'pending'; });
+  document.getElementById('pendingApps').innerHTML = pend.length ? pend.map(function (a) {
+    return '<div class="mrow" style="cursor:default">' + (a.photo ? '<img src="' + a.photo + '" alt="">' : '<div class="avatar">👤</div>') +
+      '<div style="flex:1"><div class="nm">' + esc(a.name) + '</div><div class="meta">ফরম নং ' + esc(a.formNo) + ' · ' + bn(a.date) + (a.mobile ? ' · ' + esc(a.mobile) : '') + ' · গ্রাম: ' + esc(a.village || '') + '</div></div>' +
+      '<button class="btn small" onclick="approveApp(\'' + a.uid + '\')">✓ অনুমোদন</button>' +
+      '<button class="btn small danger" onclick="rejectApp(\'' + a.uid + '\')">✗ বাতিল</button></div>';
+  }).join('') : '<div class="empty">কোনো অপেক্ষমাণ আবেদন নেই।</div>';
+  document.getElementById('pastApps').innerHTML = past.length ? past.map(function (a) {
+    return '<div class="mrow" style="cursor:default"><div style="flex:1"><div class="nm" style="font-size:14.5px">' + esc(a.name) + '</div><div class="meta">ফরম নং ' + esc(a.formNo) + '</div></div>' +
+      (a.status === 'approved' ? '<span class="chip ok">অনুমোদিত → ' + esc(a.memberId || '') + '</span>' : '<span class="chip due">বাতিল</span>') + '</div>';
+  }).join('') : '<div class="empty">এখনো কোনো সিদ্ধান্ত হয়নি।</div>';
+}
+function approveApp(uidv) {
+  var a = data.applications.find(function (x) { return x.uid === uidv; }); if (!a) return;
+  var maxN = data.members.reduce(function (mx, m) { var n = parseInt((m.id || '').replace(/\D/g, ''), 10); return isNaN(n) ? mx : Math.max(mx, n); }, 0);
+  var newId = 'PDC-' + String(maxN + 1).padStart(3, '0');
+  a.status = 'approved'; a.memberId = newId;
+  data.members.push({ id: newId, name: a.name, role: '', father: a.father, mother: a.mother, village: a.village, post: a.post, upazila: a.upazila, district: a.district, nid: a.nid, dob: a.dob, edu: a.edu, job: a.job, mobile: a.mobile, blood: a.blood, other: a.other, photo: a.photo || '', join: curMonth() });
+  save(); renderAll();
+  toast('✅ ' + a.name + ' এখন সদস্য — আইডি ' + newId);
+}
+function rejectApp(uidv) {
+  var a = data.applications.find(function (x) { return x.uid === uidv; }); if (!a) return;
+  if (!confirm('আবেদনটি বাতিল করবেন?')) return;
+  a.status = 'rejected'; save(); renderAll(); toast('আবেদন বাতিল করা হয়েছে');
+}
+</script>
+
+<script>
+/* ================= জমা ================= */
+function renderDeposits() {
+  var sel = document.getElementById('depMember');
+  var cur = sel.value;
+  sel.innerHTML = data.members.map(function (m) { return '<option value="' + m.id + '">' + m.id + ' — ' + esc(m.name) + '</option>'; }).join('');
+  if (cur && memberById(cur)) sel.value = cur;
+  var cm = curMonth();
+  document.getElementById('monthStatus').innerHTML = data.members.filter(function (m) { return m.join <= cm; }).map(function (m) {
+    var paid = data.deposits.some(function (d) { return d.memberId === m.id && d.month === cm; });
+    return '<div class="mrow" onclick="openProfile(\'' + m.id + '\')"><div style="flex:1"><div class="nm" style="font-size:14.5px">' + esc(m.name) + '</div><div class="meta">' + m.id + '</div></div><span class="chip ' + (paid ? 'ok' : 'due') + '">' + (paid ? '✓ দিয়েছে' : '✗ বকেয়া') + '</span></div>';
+  }).join('') || '<div class="empty">সদস্য নেই।</div>';
+  var list = data.deposits.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  document.getElementById('depositList').innerHTML = list.length ? list.map(function (d) {
+    var m = memberById(d.memberId);
+    return '<div class="mrow" style="cursor:default"><div style="flex:1"><div class="nm" style="font-size:14.5px">' + esc(m ? m.name : d.memberId) + ' — ' + monthName(d.month) + '</div><div class="meta">' + bn(d.date) + ' · ' + esc(d.method || 'নগদ') + ' · রসিদ নং ' + esc(d.receiptNo || '') + '</div></div><b style="color:#166534">' + money(d.amount) + '</b><button class="btn small danger" onclick="delDeposit(\'' + d.uid + '\')">মুছো</button></div>';
+  }).join('') : '<div class="empty">এখনো কোনো জমা যোগ করা হয়নি।</div>';
+}
+function addDeposit() {
+  var mid = document.getElementById('depMember').value;
+  var month = document.getElementById('depMonth').value;
+  var amount = +document.getElementById('depAmount').value;
+  var date = document.getElementById('depDate').value || todayStr();
+  var method = document.getElementById('depMethod').value;
+  if (!mid) { toast('আগে সদস্য বেছে নিন'); return; }
+  if (!month) { toast('কোন মাসের চাঁদা, তা বেছে নিন'); return; }
+  if (!amount || amount <= 0) { toast('সঠিক টাকার পরিমাণ দিন'); return; }
+  var rn = 'R-' + bn(String(data.deposits.length + 1).padStart(4, '0'));
+  data.deposits.push({ uid: uid(), memberId: mid, month: month, amount: amount, date: date, method: method, receiptNo: rn });
+  save(); renderAll();
+  var m = memberById(mid);
+  toast('✅ জমা সেভ হয়েছে — ' + (m ? m.name : mid) + ', ' + monthName(month) + ', ' + money(amount) + ' (রসিদ ' + rn + ')');
+}
+function delDeposit(uidv) {
+  if (!confirm('এই জমার রেকর্ড মুছে যাবে — নিশ্চিত?')) return;
+  data.deposits = data.deposits.filter(function (d) { return d.uid !== uidv; });
+  save(); renderAll(); toast('জমার রেকর্ড মোছা হয়েছে');
+}
+
+/* ================= আয়-ব্যয় ================= */
+var CATS_IN = ['অনুদান', 'বৈধ দান', 'উন্নয়নমূলক প্রকল্পের আয়', 'অন্যান্য আয়'];
+var CATS_OUT = ['অফিস খরচ', 'সভা ও অনুষ্ঠান', 'বৃক্ষরোপণ', 'পরিচ্ছন্নতা অভিযান', 'রক্তদান কর্মসূচি', 'শিক্ষাবৃত্তি', 'চিকিৎসা সহায়তা', 'দুর্যোগকালীন ত্রাণ', 'অন্যান্য খরচ'];
+function fillCats() {
+  var t = document.getElementById('ledType').value;
+  document.getElementById('ledCat').innerHTML = (t === 'in' ? CATS_IN : CATS_OUT).map(function (c) { return '<option>' + c + '</option>'; }).join('');
+}
+function renderLedger() {
+  var sorted = data.ledger.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  document.getElementById('ledgerList').innerHTML = sorted.length ? sorted.map(function (l) {
+    return '<div class="mrow" style="cursor:default"><div style="flex:1"><div class="nm" style="font-size:14.5px">' + (l.type === 'in' ? '💚' : '❤️') + ' ' + esc(l.cat) + (l.desc ? ' — ' + esc(l.desc) : '') + '</div><div class="meta">' + bn(l.date) + '</div></div><b style="color:' + (l.type === 'in' ? '#166534' : '#991b1b') + '">' + (l.type === 'in' ? '+' : '−') + money(l.amount) + '</b><button class="btn small danger" onclick="delLedger(\'' + l.uid + '\')">মুছো</button></div>';
+  }).join('') : '<div class="empty">এখনো কোনো আয়-ব্যয় যোগ করা হয়নি।</div>';
+  var sums = {};
+  data.ledger.forEach(function (l) { var k = (l.type === 'in' ? 'আয় · ' : 'ব্যয় · ') + l.cat; sums[k] = (sums[k] || 0) + (+l.amount || 0); });
+  var depTotal = data.deposits.reduce(function (s, d) { return s + (+d.amount || 0); }, 0);
+  var keys = Object.keys(sums).sort();
+  document.getElementById('catSummary').innerHTML =
+    '<table><tr><th>খাত</th><th style="text-align:right">টাকা</th></tr>' +
+    '<tr><td>আয় · সদস্যদের চাঁদা (জমা ট্যাব থেকে)</td><td style="text-align:right"><b>' + money(depTotal) + '</b></td></tr>' +
+    keys.map(function (k) { return '<tr><td>' + esc(k) + '</td><td style="text-align:right"><b>' + money(sums[k]) + '</b></td></tr>'; }).join('') + '</table>';
+}
+function addLedger() {
+  var type = document.getElementById('ledType').value;
+  var cat = document.getElementById('ledCat').value;
+  var amount = +document.getElementById('ledAmount').value;
+  var date = document.getElementById('ledDate').value || todayStr();
+  var desc = document.getElementById('ledDesc').value.trim();
+  if (!amount || amount <= 0) { toast('সঠিক টাকার পরিমাণ দিন'); return; }
+  data.ledger.push({ uid: uid(), type: type, cat: cat, amount: amount, date: date, desc: desc });
+  document.getElementById('ledAmount').value = ''; document.getElementById('ledDesc').value = '';
+  save(); renderAll(); toast('✅ সেভ হয়েছে — ' + cat + ' ' + money(amount));
+}
+function delLedger(uidv) {
+  if (!confirm('এই রেকর্ড মুছে যাবে — নিশ্চিত?')) return;
+  data.ledger = data.ledger.filter(function (l) { return l.uid !== uidv; });
+  save(); renderAll(); toast('রেকর্ড মোছা হয়েছে');
+}
+
+/* ================= আবেদন জমা ================= */
+function downscalePhoto(file, cb) {
+  if (!file) { cb(''); return; }
+  var img = new Image();
+  var url = URL.createObjectURL(file);
+  img.onload = function () {
+    var max = 480, w = img.width, h = img.height;
+    var sc = Math.min(1, max / Math.max(w, h));
+    var c = document.createElement('canvas'); c.width = Math.round(w * sc); c.height = Math.round(h * sc);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    cb(c.toDataURL('image/jpeg', 0.82));
+  };
+  img.onerror = function () { cb(''); };
+  img.src = url;
+}
+function submitApplication() {
+  var g = function (id) { return document.getElementById(id).value.trim(); };
+  var name = g('a_name'), nid = g('a_nid'), mobile = g('a_mobile');
+  if (!name || !nid || !mobile) { toast('⚠ নাম, NID নম্বর আর মোবাইল — এই তিনটা অবশ্যই লাগবে'); return; }
+  if (!document.getElementById('a_agree').checked) { toast('⚠ অঙ্গীকারের বাক্সে টিক দিন'); return; }
+  var photoFile = document.getElementById('a_photo').files[0];
+  downscalePhoto(photoFile, function (photoData) {
+    var yr = new Date().getFullYear();
+    var formNo = yr + '-' + String(data.applications.length + 1).padStart(3, '0');
+    data.applications.push({
+      uid: uid(), formNo: formNo, date: todayStr(), status: 'pending', memberId: '',
+      name: name, father: g('a_father'), mother: g('a_mother'), village: g('a_village'), post: g('a_post'),
+      upazila: g('a_upazila'), district: g('a_district'), nid: nid, dob: g('a_dob'), edu: g('a_edu'), job: g('a_job'),
+      mobile: mobile, blood: g('a_blood'), other: g('a_other'), photo: photoData,
+      nidFront: (document.getElementById('a_nidf').files[0] || {}).name || '',
+      nidBack: (document.getElementById('a_nidb').files[0] || {}).name || ''
+    });
+    save(); renderAll();
+    ['a_name','a_father','a_mother','a_village','a_post','a_upazila','a_district','a_nid','a_dob','a_edu','a_job','a_mobile','a_other'].forEach(function (i) { document.getElementById(i).value = ''; });
+    document.getElementById('a_blood').value = ''; document.getElementById('a_agree').checked = false;
+    document.getElementById('a_photo').value = ''; document.getElementById('a_nidf').value = ''; document.getElementById('a_nidb').value = '';
+    toast('✅ আবেদন জমা হয়েছে! ফরম নং ' + formNo + ' — ম্যানেজারের অনুমোদনের অপেক্ষায়');
+    go('apps');
+  });
+}
+
+/* ================= ব্যাকআপ ================= */
+function exportData() {
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'shanti-unnoyon-backup-' + todayStr() + '.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('⬇ ব্যাকআপ ডাউনলোড হয়েছে');
+}
+function importData(inp) {
+  var f = inp.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function () {
+    try {
+      var d = JSON.parse(r.result);
+      if (!d.members || !d.deposits) throw new Error('bad');
+      data = d; save(); renderAll(); toast('✅ ব্যাকআপ ফিরিয়ে আনা হয়েছে');
+    } catch (e) { toast('⚠ ফাইলটা ঠিকমতো পড়া গেল না'); }
+    inp.value = '';
+  };
+  r.readAsText(f);
+}
+
+/* ================= শুরু ================= */
+function renderAll() { renderDash(); renderMembers(); renderApps(); renderDeposits(); renderLedger(); }
+load();
+document.getElementById('depMonth').value = curMonth();
+document.getElementById('depDate').value = todayStr();
+document.getElementById('ledDate').value = todayStr();
+fillCats();
+renderAll();
+</script>
+</body>
+</html>

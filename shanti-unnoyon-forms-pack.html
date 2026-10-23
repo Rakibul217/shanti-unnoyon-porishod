@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ফরমসমূহ — শান্তি ও উন্নয়ন পরিষদ (গঠনতন্ত্র অনুযায়ী)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Hind Siliguri','Noto Sans Bengali',sans-serif; background:#e8ecef; color:#111; }
+  .menu { position:sticky; top:0; z-index:10; background:#14532d; padding:10px 8px; display:flex; gap:7px;
+          flex-wrap:wrap; justify-content:center; align-items:center; }
+  .menu .ttl { color:#fff; font-weight:700; font-size:15px; margin-right:4px; }
+  .menu button { border:0; border-radius:999px; padding:11px 16px; font-size:14.5px; font-weight:600;
+                 font-family:inherit; cursor:pointer; background:rgba(255,255,255,.15); color:#fff; min-height:48px; }
+  .menu button.active { background:#fff; color:#14532d; }
+  .menu button.printb { background:#22c55e; color:#fff; }
+  .doc { display:none; }
+  .doc.active { display:block; }
+  .sheet { background:#fff; width:210mm; margin:14px auto; padding:12mm 13mm 11mm;
+           box-shadow:0 2px 14px rgba(0,0,0,.18); font-size:11.5pt; line-height:1.55; }
+  h1.org { text-align:center; color:#0a7a43; font-size:20pt; font-weight:700; }
+  .addr { text-align:center; font-weight:600; font-size:11pt; margin-top:1mm; }
+  .rule { border-bottom:2.2px solid #111; margin:4mm 0 4mm; }
+  .doc-title { text-align:center; margin-bottom:5mm; }
+  .doc-title span { display:inline-block; border:1.6px solid #111; border-radius:999px; font-weight:700;
+                    font-size:13pt; padding:1.5mm 8mm 2mm; }
+  .doc-title .sub { display:block; border:0; font-size:10pt; font-weight:400; color:#333; padding:0; margin-top:1.5mm; }
+  .frow { display:flex; align-items:flex-end; gap:7px; margin-top:8px; }
+  .frow label { white-space:nowrap; }
+  input.line, textarea.line { font-family:inherit; font-size:11.5pt; border:0; border-bottom:1.6px dotted #444;
+    background:transparent; padding:0 4px 1px; outline:none; min-width:0; }
+  input.line:focus, textarea.line:focus { border-bottom:1.6px solid #0a7a43; background:#f0fdf4; }
+  .grow { flex:1; } .grow2 { flex:2; } .w30 { flex:0 0 30mm; } .w45 { flex:0 0 45mm; } .w60 { flex:0 0 60mm; }
+  p.body { margin-top:9px; text-align:justify; }
+  .sig-flex { display:flex; gap:14mm; margin-top:13mm; }
+  .sig { flex:1; text-align:center; }
+  .sig .ln { border-top:1.5px solid #111; margin-bottom:2px; }
+  .sig small { font-size:10pt; color:#222; }
+  .office-box { border:1.4px solid #111; padding:4mm; margin-top:8mm; }
+  .office-box b.t { display:block; margin-bottom:2mm; }
+  table.tbl { width:100%; border-collapse:collapse; margin-top:4mm; }
+  table.tbl th, table.tbl td { border:1.3px solid #111; padding:2.2mm 2.5mm; font-size:11pt; }
+  table.tbl th { background:#eef7f0; text-align:left; }
+  table.tbl input { width:100%; border:0; font-family:inherit; font-size:11pt; outline:none; background:transparent; }
+  .receipt { border:1.7px solid #111; padding:5mm 6mm; }
+  .cut { border-top:1.6px dashed #666; margin:6mm 0; text-align:center; color:#666; font-size:10pt; }
+  .seal { border:1.3px dashed #888; border-radius:50%; width:26mm; height:26mm; display:flex; align-items:center;
+          justify-content:center; color:#888; font-size:9.5pt; text-align:center; flex:none; }
+  .hint { text-align:center; color:#555; font-size:12.5px; margin:8px 6px 22px; padding:0 10px; }
+  @media screen and (max-width:880px){ .sheet{ zoom:.86 } }
+  @media screen and (max-width:780px){ .sheet{ zoom:.78 } }
+  @media screen and (max-width:700px){ .sheet{ zoom:.70 } }
+  @media screen and (max-width:620px){ .sheet{ zoom:.62 } }
+  @media screen and (max-width:540px){ .sheet{ zoom:.54 } }
+  @media screen and (max-width:470px){ .sheet{ zoom:.47 } }
+  @page { size:A4; margin:0; }
+  @media print {
+    body { background:#fff; }
+    .menu, .hint { display:none !important; }
+    .sheet { margin:0; box-shadow:none; width:210mm; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    input, textarea { background:transparent !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="menu">
+  <span class="ttl">📋 ফরম বেছে নিন:</span>
+  <button data-doc="receipt" class="active" onclick="showDoc('receipt')">🧾 মানি রসিদ</button>
+  <button data-doc="meeting-notice" onclick="showDoc('meeting-notice')">📢 সভার নোটিশ</button>
+  <button data-doc="minutes" onclick="showDoc('minutes')">📝 কার্যবিবরণী</button>
+  <button data-doc="showcause" onclick="showDoc('showcause')">⚠ কারণ দর্শানো</button>
+  <button data-doc="withdraw" onclick="showDoc('withdraw')">🏦 টাকা উত্তোলন</button>
+  <button data-doc="inability" onclick="showDoc('inability')">✉ চাঁদা-অপারগতার আবেদন</button>
+  <button data-doc="cancel" onclick="showDoc('cancel')">⛔ বাতিলের নোটিশ</button>
+  <button data-doc="audit" onclick="showDoc('audit')">📊 নিরীক্ষা প্রতিবেদন</button>
+  <button class="printb" onclick="window.print()">🖨 প্রিন্ট করো</button>
+</div>
+
+<!-- ================= ১. মানি রসিদ (ধারা ৭ ও ১১) ================= -->
+<section class="doc active" id="doc-receipt">
+  <div class="sheet">
+    <div class="receipt">
+      <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+      <div class="addr">জয়সেনা, তেরখাদা, খুলনা</div>
+      <div class="rule"></div>
+      <div class="doc-title"><span>মানি রসিদ</span><span class="sub">(সংগঠনের কপি)</span></div>
+      <div class="frow"><label>রসিদ নং:</label><input class="line w45" data-sync="r_no"><label>তারিখ:</label><input class="line w45" data-sync="r_date"><label>সদস্য আইডি:</label><input class="line grow" data-sync="r_id"></div>
+      <div class="frow"><label>জনাব/জনাবা:</label><input class="line grow" data-sync="r_name"></div>
+      <div class="frow"><label>এর নিকট হইতে</label><input class="line w45" data-sync="r_month" placeholder="মাসের নাম"><label>মাসের</label>
+        <label><input type="radio" name="rkind1" checked> মাসিক চাঁদা</label><label><input type="radio" name="rkind1"> অনুদান</label><label><input type="radio" name="rkind1"> অন্যান্য</label>
+        <label>বাবদ মোট</label><input class="line w45" data-sync="r_amt"><label>টাকা</label></div>
+      <div class="frow"><label>কথায়:</label><input class="line grow" data-sync="r_words"><label>বুঝিয়া পাইলাম।</label></div>
+      <div class="sig-flex" style="align-items:flex-end">
+        <div class="seal">সংগঠনের<br>সিল</div>
+        <div class="sig"><div class="ln"></div><small>গ্রহণকারীর স্বাক্ষর (কোষাধ্যক্ষ/ম্যানেজার)</small></div>
+        <div class="sig"><div class="ln"></div><small>সভাপতির স্বাক্ষর</small></div>
+      </div>
+    </div>
+
+    <div class="cut">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</div>
+
+    <div class="receipt">
+      <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+      <div class="addr">জয়সেনা, তেরখাদা, খুলনা</div>
+      <div class="rule"></div>
+      <div class="doc-title"><span>মানি রসিদ</span><span class="sub">(সদস্যের কপি)</span></div>
+      <div class="frow"><label>রসিদ নং:</label><input class="line w45" data-sync="r_no"><label>তারিখ:</label><input class="line w45" data-sync="r_date"><label>সদস্য আইডি:</label><input class="line grow" data-sync="r_id"></div>
+      <div class="frow"><label>জনাব/জনাবা:</label><input class="line grow" data-sync="r_name"></div>
+      <div class="frow"><label>এর নিকট হইতে</label><input class="line w45" data-sync="r_month"><label>মাসের</label>
+        <label><input type="radio" name="rkind2" checked> মাসিক চাঁদা</label><label><input type="radio" name="rkind2"> অনুদান</label><label><input type="radio" name="rkind2"> অন্যান্য</label>
+        <label>বাবদ মোট</label><input class="line w45" data-sync="r_amt"><label>টাকা</label></div>
+      <div class="frow"><label>কথায়:</label><input class="line grow" data-sync="r_words"><label>বুঝিয়া পাইলাম।</label></div>
+      <div class="sig-flex" style="align-items:flex-end">
+        <div class="seal">সংগঠনের<br>সিল</div>
+        <div class="sig"><div class="ln"></div><small>গ্রহণকারীর স্বাক্ষর (কোষাধ্যক্ষ/ম্যানেজার)</small></div>
+        <div class="sig"><div class="ln"></div><small>সভাপতির স্বাক্ষর</small></div>
+      </div>
+    </div>
+    <p class="hint">💡 উপরের কপিতে লিখলেই নিচের কপিতে অটো বসে যাবে — একবার প্রিন্ট করে মাঝখান দিয়ে কেটে সদস্যকে এক কপি দিয়ে দেবেন।</p>
+  </div>
+</section>
+
+<!-- ================= ২. সভার নোটিশ (ধারা ৯) ================= -->
+<section class="doc" id="doc-meeting-notice">
+  <div class="sheet">
+    <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+    <div class="addr">জয়সেনা, তেরখাদা, খুলনা, বাংলাদেশ</div>
+    <div class="rule"></div>
+    <div class="doc-title"><span>সভার নোটিশ</span><span class="sub">(গঠনতন্ত্রের ধারা ৯ অনুযায়ী)</span></div>
+    <div class="frow"><label>নোটিশ নং:</label><input class="line w45"><span class="grow"></span><label>তারিখ:</label><input class="line w45"></div>
+    <p class="body"><b>বিষয়:</b> <label><input type="radio" name="mkind" checked> সাধারণ সভা</label> <label><input type="radio" name="mkind"> বিশেষ/জরুরি সভা</label> আহ্বান প্রসঙ্গে।</p>
+    <p class="body">এতদ্বারা শান্তি ও উন্নয়ন পরিষদের সকল সদস্যকে জানানো যাইতেছে যে, আগামী</p>
+    <div class="frow"><label>তারিখ:</label><input class="line grow"><label>রোজ:</label><input class="line w45"><label>সময়:</label><input class="line w45"></div>
+    <div class="frow"><label>স্থান:</label><input class="line grow"></div>
+    <p class="body">-এ সংগঠনের সভা অনুষ্ঠিত হইবে। সকল সদস্যকে যথাসময়ে উপস্থিত থাকার জন্য বিশেষভাবে অনুরোধ করা হইল।</p>
+    <p class="body"><b>আলোচ্য বিষয়:</b></p>
+    <div class="frow"><label>১।</label><input class="line grow"></div>
+    <div class="frow"><label>২।</label><input class="line grow"></div>
+    <div class="frow"><label>৩।</label><input class="line grow"></div>
+    <div class="frow"><label>৪।</label><input class="line grow"></div>
+    <div class="sig-flex">
+      <div class="sig"></div>
+      <div class="sig"><div class="ln"></div><small>সাধারণ সম্পাদক<br>(সভাপতির নির্দেশক্রমে)</small></div>
+    </div>
+    <p class="body" style="margin-top:8mm"><b>অনুলিপি:</b> সভাপতি / সহসভাপতি / কোষাধ্যক্ষ / সকল সদস্য বরাবর প্রেরিত হইল।</p>
+  </div>
+</section>
+
+<!-- ================= ৩. সভার কার্যবিবরণী (ধারা ৯) ================= -->
+<section class="doc" id="doc-minutes">
+  <div class="sheet">
+    <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+    <div class="addr">জয়সেনা, তেরখাদা, খুলনা, বাংলাদেশ</div>
+    <div class="rule"></div>
+    <div class="doc-title"><span>সভার কার্যবিবরণী</span><span class="sub">(গঠনতন্ত্রের ধারা ৯ অনুযায়ী লিখিতভাবে সংরক্ষণযোগ্য)</span></div>
+    <div class="frow"><label>সভার তারিখ:</label><input class="line grow"><label>সময়:</label><input class="line w45"><label>স্থান:</label><input class="line grow"></div>
+    <div class="frow"><label>সভাপতিত্ব করেন:</label><input class="line grow"><label>উপস্থিত সদস্য সংখ্যা:</label><input class="line w30"><label>জন</label></div>
+    <p class="body"><b>আলোচ্য বিষয় ও গৃহীত সিদ্ধান্তসমূহ:</b></p>
+    <div class="frow"><label>১।</label><input class="line grow"></div>
+    <div class="frow"><input class="line grow"></div>
+    <div class="frow"><label>২।</label><input class="line grow"></div>
+    <div class="frow"><input class="line grow"></div>
+    <div class="frow"><label>৩।</label><input class="line grow"></div>
+    <div class="frow"><input class="line grow"></div>
+    <div class="frow"><label>৪।</label><input class="line grow"></div>
+    <div class="frow"><input class="line grow"></div>
+    <div class="frow" style="margin-top:6mm"><label>পরবর্তী সভার সম্ভাব্য তারিখ:</label><input class="line grow"></div>
+    <p class="body">আর কোনো আলোচনা না থাকায় সভাপতি উপস্থিত সকলকে ধন্যবাদ জানিয়ে সভার সমাপ্তি ঘোষণা করেন।</p>
+    <div class="sig-flex">
+      <div class="sig"><div class="ln"></div><small>সাধারণ সম্পাদক<br>(কার্যবিবরণী প্রস্তুতকারী)</small></div>
+      <div class="sig"><div class="ln"></div><small>সভাপতি<br>(সভাপতিত্বকারী)</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ৪. কারণ দর্শানোর নোটিশ (ধারা ৭) ================= -->
+<section class="doc" id="doc-showcause">
+  <div class="sheet">
+    <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+    <div class="addr">জয়সেনা, তেরখাদা, খুলনা, বাংলাদেশ</div>
+    <div class="rule"></div>
+    <div class="doc-title"><span>কারণ দর্শানোর নোটিশ</span><span class="sub">(গঠনতন্ত্রের ধারা ৭ অনুযায়ী — চাঁদা বকেয়া প্রসঙ্গে)</span></div>
+    <div class="frow"><label>নোটিশ নং:</label><input class="line w45"><span class="grow"></span><label>তারিখ:</label><input class="line w45"></div>
+    <div class="frow"><label>প্রাপক: জনাব/জনাবা</label><input class="line grow"></div>
+    <div class="frow"><label>পিতা/স্বামীর নাম:</label><input class="line grow"><label>সদস্য আইডি:</label><input class="line w45"></div>
+    <div class="frow"><label>ঠিকানা:</label><input class="line grow"></div>
+    <p class="body"><b>বিষয়:</b> মাসিক চাঁদা বকেয়া থাকায় কারণ দর্শানো প্রসঙ্গে।</p>
+    <p class="body">জনাব,</p>
+    <p class="body">আপনাকে জানানো যাইতেছে যে, সংগঠনের হিসাব অনুযায়ী আপনার নিম্নবর্ণিত মাসসমূহের মাসিক চাঁদা এখনো বকেয়া রহিয়াছে:</p>
+    <div class="frow"><label>বকেয়া মাস:</label><input class="line grow"><label>মোট বকেয়া:</label><input class="line w45"><label>টাকা</label></div>
+    <p class="body">গঠনতন্ত্রের ধারা ৭ অনুযায়ী ৩ (তিন) মাস চাঁদা বকেয়া থাকলে কারণ দর্শানোর বিধান রহিয়াছে। অতএব এই নোটিশ প্রাপ্তির
+    <input class="line w30" style="text-align:center"> দিনের মধ্যে বকেয়া চাঁদা পরিশোধ করিতে অথবা নিম্নস্বাক্ষরকারীর নিকট হাজির হইয়া
+    উপযুক্ত কারণ দর্শাইতে নির্দেশ দেওয়া হইল। অন্যথায় গঠনতন্ত্র অনুযায়ী পরবর্তী ব্যবস্থা গ্রহণ করা হইবে।</p>
+    <div class="sig-flex">
+      <div class="sig"></div>
+      <div class="sig"><div class="ln"></div><small>সাধারণ সম্পাদক</small></div>
+      <div class="sig"><div class="ln"></div><small>সভাপতি</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ৫. অর্থ উত্তোলনের আবেদন (ধারা ১০) ================= -->
+<section class="doc" id="doc-withdraw">
+  <div class="sheet">
+    <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+    <div class="addr">জয়সেনা, তেরখাদা, খুলনা, বাংলাদেশ</div>
+    <div class="rule"></div>
+    <div class="doc-title"><span>অর্থ উত্তোলনের আবেদনপত্র</span><span class="sub">(গঠনতন্ত্রের ধারা ১০ অনুযায়ী — যৌথ স্বাক্ষরে উত্তোলন)</span></div>
+    <div class="frow"><label>আবেদন নং:</label><input class="line w45"><span class="grow"></span><label>তারিখ:</label><input class="line w45"></div>
+    <p class="body">বরাবর,<br><b>সভাপতি</b><br>শান্তি ও উন্নয়ন পরিষদ, জয়সেনা, তেরখাদা, খুলনা।</p>
+    <p class="body"><b>বিষয়:</b> সংগঠনের ব্যাংক হিসাব হইতে অর্থ উত্তোলনের অনুমোদন প্রসঙ্গে।</p>
+    <p class="body">জনাব,</p>
+    <p class="body">বিনীত নিবেদন এই যে, নিম্নবর্ণিত কারণে সংগঠনের ব্যাংক হিসাব হইতে অর্থ উত্তোলনের প্রয়োজন হইয়াছে:</p>
+    <div class="frow"><label>উত্তোলনের কারণ/খাত:</label><input class="line grow"></div>
+    <div class="frow"><input class="line grow"></div>
+    <div class="frow"><label>ব্যাংকের নাম ও শাখা:</label><input class="line grow"><label>হিসাব নং:</label><input class="line grow"></div>
+    <div class="frow"><label>উত্তোলনের পরিমাণ (অংকে):</label><input class="line grow"><label>টাকা</label></div>
+    <div class="frow"><label>কথায়:</label><input class="line grow"></div>
+    <p class="body">অতএব, উক্ত অর্থ উত্তোলনের অনুমোদন দেওয়ার জন্য বিনীতভাবে আবেদন করিতেছি।</p>
+    <div class="sig-flex">
+      <div class="sig"><div class="ln"></div><small>আবেদনকারী<br>কোষাধ্যক্ষ</small></div>
+      <div class="sig"><div class="ln"></div><small>সাধারণ সম্পাদক<br>(যৌথ স্বাক্ষর)</small></div>
+      <div class="sig"><div class="ln"></div><small>সভাপতি<br>(অনুমোদনকারী ও যৌথ স্বাক্ষর)</small></div>
+    </div>
+    <div class="office-box"><b class="t">অফিস কর্তৃক পূরণীয়:</b>
+      <label><input type="checkbox"> অনুমোদিত</label> &nbsp; <label><input type="checkbox"> নামঞ্জুর</label>
+      <div class="frow"><label>মন্তব্য:</label><input class="line grow"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ৬. চাঁদা প্রদানে অপারগতার আবেদন (প্রাথমিক নীতিমালা ৩) ================= -->
+<section class="doc" id="doc-inability">
+  <div class="sheet">
+    <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+    <div class="addr">জয়সেনা, তেরখাদা, খুলনা, বাংলাদেশ</div>
+    <div class="rule"></div>
+    <div class="doc-title"><span>মাসিক চাঁদা প্রদানে অপারগতার আবেদন</span><span class="sub">(গঠনতন্ত্রের প্রাথমিক নীতিমালা অনুযায়ী — কমপক্ষে ২ মাস পূর্বে লিখিত আবেদন)</span></div>
+    <div class="frow"><span class="grow"></span><label>তারিখ:</label><input class="line w45"></div>
+    <p class="body">বরাবর,<br><b>সভাপতি/সাধারণ সম্পাদক</b><br>শান্তি ও উন্নয়ন পরিষদ, জয়সেনা, তেরখাদা, খুলনা।</p>
+    <p class="body"><b>বিষয়:</b> মাসিক চাঁদা প্রদানে সাময়িক অপারগতা প্রসঙ্গে আবেদন।</p>
+    <p class="body">জনাব,</p>
+    <p class="body">বিনীত নিবেদন এই যে, আমি নিম্নস্বাক্ষরকারী আপনার সংগঠনের একজন সদস্য। নিম্নবর্ণিত কারণে আগামী কিছুদিন আমার পক্ষে মাসিক চাঁদা নিয়মিত প্রদান করা সম্ভব হইবে না:</p>
+    <div class="frow"><label>কারণ:</label><input class="line grow"></div>
+    <div class="frow"><input class="line grow"></div>
+    <div class="frow"><label>অপারগতার সময়কাল:</label><input class="line grow" placeholder="কোন মাস হইতে কোন মাস পর্যন্ত"></div>
+    <p class="body">অতএব, উক্ত সময়ের জন্য আমার চাঁদা সাময়িকভাবে স্থগিত রাখার অনুমতি দেওয়ার জন্য বিনীতভাবে আবেদন করিতেছি। পরিস্থিতি স্বাভাবিক হইলেই আমি নিয়মিত চাঁদা প্রদান শুরু করিব, ইনশাআল্লাহ।</p>
+    <div class="frow" style="margin-top:6mm"><label>আবেদনকারীর নাম:</label><input class="line grow"><label>সদস্য আইডি:</label><input class="line w45"></div>
+    <div class="frow"><label>মোবাইল নং:</label><input class="line grow"><label>স্বাক্ষর:</label><input class="line grow"></div>
+    <div class="office-box"><b class="t">সংগঠনের সিদ্ধান্ত:</b>
+      <label><input type="checkbox"> আবেদন গৃহীত — চাঁদা স্থগিত রাখা হইল</label> &nbsp; <label><input type="checkbox"> নামঞ্জুর</label>
+      <div class="frow"><label>মন্তব্য:</label><input class="line grow"></div>
+      <div class="sig-flex" style="margin-top:8mm">
+        <div class="sig"><div class="ln"></div><small>সাধারণ সম্পাদক</small></div>
+        <div class="sig"><div class="ln"></div><small>সভাপতি</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ৭. সদস্যপদ বাতিলের নোটিশ (ধারা ১২) ================= -->
+<section class="doc" id="doc-cancel">
+  <div class="sheet">
+    <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+    <div class="addr">জয়সেনা, তেরখাদা, খুলনা, বাংলাদেশ</div>
+    <div class="rule"></div>
+    <div class="doc-title"><span>সদস্যপদ বাতিল সংক্রান্ত নোটিশ</span><span class="sub">(গঠনতন্ত্রের ধারা ১২ অনুযায়ী — অভিযোগ যাচাই ও আত্মপক্ষ সমর্থনের সুযোগসহ)</span></div>
+    <div class="frow"><label>নোটিশ নং:</label><input class="line w45"><span class="grow"></span><label>তারিখ:</label><input class="line w45"></div>
+    <div class="frow"><label>প্রাপক: জনাব/জনাবা</label><input class="line grow"></div>
+    <div class="frow"><label>সদস্য আইডি:</label><input class="line w45"><label>পিতা/স্বামীর নাম:</label><input class="line grow"></div>
+    <div class="frow"><label>ঠিকানা:</label><input class="line grow"></div>
+    <p class="body"><b>বিষয়:</b> সদস্যপদ বাতিলের অভিযোগ প্রসঙ্গে আত্মপক্ষ সমর্থনের নোটিশ।</p>
+    <p class="body">জনাব,</p>
+    <p class="body">আপনার বিরুদ্ধে নিম্নবর্ণিত অভিযোগ উত্থাপিত হইয়াছে, যাহা গঠনতন্ত্রের ধারা ১২ অনুযায়ী সদস্যপদ বাতিলযোগ্য:</p>
+    <div class="frow"><label>অভিযোগ:</label><input class="line grow"></div>
+    <div class="frow"><input class="line grow"></div>
+    <p class="body">গঠনতন্ত্রের বিধান অনুযায়ী সিদ্ধান্তের পূর্বে আপনাকে আত্মপক্ষ সমর্থনের সুযোগ দেওয়া হইতেছে। আগামী</p>
+    <div class="frow"><label>তারিখ:</label><input class="line grow"><label>সময়:</label><input class="line w45"><label>স্থান:</label><input class="line grow"></div>
+    <p class="body">-এ সংগঠনের কার্যালয়ে হাজির হইয়া আপনার বক্তব্য উপস্থাপন করিবেন। নির্ধারিত সময়ে উপস্থিত না হইলে অভিযোগের ভিত্তিতে একতরফা সিদ্ধান্ত গ্রহণ করা হইবে।</p>
+    <div class="sig-flex">
+      <div class="sig"></div>
+      <div class="sig"><div class="ln"></div><small>সাধারণ সম্পাদক</small></div>
+      <div class="sig"><div class="ln"></div><small>সভাপতি</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ৮. বার্ষিক হিসাব নিরীক্ষা প্রতিবেদন (ধারা ১৩) ================= -->
+<section class="doc" id="doc-audit">
+  <div class="sheet">
+    <h1 class="org">শান্তি ও উন্নয়ন পরিষদ</h1>
+    <div class="addr">জয়সেনা, তেরখাদা, খুলনা, বাংলাদেশ</div>
+    <div class="rule"></div>
+    <div class="doc-title"><span>বার্ষিক হিসাব নিরীক্ষা প্রতিবেদন</span><span class="sub">(গঠনতন্ত্রের ধারা ১৩ অনুযায়ী — সদস্যদের সভায় উপস্থাপনযোগ্য)</span></div>
+    <div class="frow"><label>অর্থবছর:</label><input class="line grow"><label>প্রতিবেদনের তারিখ:</label><input class="line w45"></div>
+
+    <table class="tbl">
+      <tr><th colspan="2">আয়</th><th style="width:32mm">টাকা</th></tr>
+      <tr><td>সদস্যদের মাসিক চাঁদা</td><td style="width:14mm"></td><td><input></td></tr>
+      <tr><td>অনুদান ও বৈধ দান</td><td></td><td><input></td></tr>
+      <tr><td>উন্নয়নমূলক প্রকল্পের আয়</td><td></td><td><input></td></tr>
+      <tr><td>অন্যান্য</td><td></td><td><input></td></tr>
+      <tr><th colspan="2">মোট আয়</th><th><input></th></tr>
+    </table>
+
+    <table class="tbl">
+      <tr><th colspan="2">ব্যয় (খাত অনুযায়ী)</th><th style="width:32mm">টাকা</th></tr>
+      <tr><td><input placeholder="খাতের নাম"></td><td style="width:14mm"></td><td><input></td></tr>
+      <tr><td><input placeholder="খাতের নাম"></td><td></td><td><input></td></tr>
+      <tr><td><input placeholder="খাতের নাম"></td><td></td><td><input></td></tr>
+      <tr><td><input placeholder="খাতের নাম"></td><td></td><td><input></td></tr>
+      <tr><th colspan="2">মোট ব্যয়</th><th><input></th></tr>
+    </table>
+
+    <div class="frow" style="margin-top:5mm"><label>উদ্বৃত্ত/ঘাটতি:</label><input class="line grow"><label>ব্যাংক স্থিতি:</label><input class="line grow"><label>নগদ স্থিতি:</label><input class="line grow"></div>
+    <p class="body">উপরোক্ত হিসাব যাচাই করিয়া সঠিক পাওয়া গেল। এই প্রতিবেদন সাধারণ সভায় সদস্যদের সম্মুখে উপস্থাপন করা হইবে।</p>
+    <div class="frow"><label>সভায় উপস্থাপনের তারিখ:</label><input class="line grow"></div>
+    <div class="sig-flex">
+      <div class="sig"><div class="ln"></div><small>নিরীক্ষক</small></div>
+      <div class="sig"><div class="ln"></div><small>কোষাধ্যক্ষ</small></div>
+      <div class="sig"><div class="ln"></div><small>সভাপতি</small></div>
+    </div>
+  </div>
+</section>
+
+<p class="hint">💡 উপরের বোতাম থেকে যেকোনো ফরম বেছে নিন → ঘরগুলোতে টাইপ করুন → 🖨 প্রিন্ট করো। প্রতিটা ফরম গঠনতন্ত্রের কোন ধারা অনুযায়ী, তা ফরমের শিরোনামের নিচে লেখা আছে।</p>
+
+<script>
+  function showDoc(id) {
+    document.querySelectorAll('.doc').forEach(function (d) { d.classList.toggle('active', d.id === 'doc-' + id); });
+    document.querySelectorAll('.menu button[data-doc]').forEach(function (b) { b.classList.toggle('active', b.dataset.doc === id); });
+    window.scrollTo(0, 0);
+  }
+  // রসিদের দুই কপি অটো-মিলিয়ে রাখা
+  document.querySelectorAll('[data-sync]').forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      document.querySelectorAll('[data-sync="' + inp.dataset.sync + '"]').forEach(function (o) { if (o !== inp) o.value = inp.value; });
+    });
+  });
+</script>
+</body>
+</html>
