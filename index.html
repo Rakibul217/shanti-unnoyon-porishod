@@ -155,6 +155,24 @@
     <div style="margin-top:12px"><button class="btn" onclick="addDeposit()">✅ জমা সেভ করো</button></div>
     <p class="note">সেভ করলেই সদস্যের প্রোফাইল, ড্যাশবোর্ডের হিসাব — সব জায়গায় সাথে সাথে আপডেট হয়ে যাবে।</p>
   </div>
+  <div class="panel" style="border:2px solid #16a34a">
+    <h2>🗓 পুরনো হিসাব একসাথে তোলা (অনেক মাসের জমা এক ক্লিকে)</h2>
+    <p class="note" style="margin:0 0 12px">সংগঠন শুরুর পর থেকে পুরনো মাসগুলোর জমা তোলার সহজ উপায়: একজন সদস্য বেছে নিন → কোন মাস থেকে কোন মাস পর্যন্ত তা দিন → যে মাসগুলোতে টাকা দিয়েছে সেগুলোতে টিক রাখুন (যে মাসে দেয়নি, সেই মাসের টিক তুলে দিন) → সেভ। ব্যাস, সব মাসের জমা একসাথে উঠে যাবে।</p>
+    <div class="fgrid">
+      <div><label>সদস্য</label><select class="inp" id="bulkMember"></select></div>
+      <div><label>শুরুর মাস</label><input class="inp" type="month" id="bulkFrom" value="2026-01" onchange="bulkMonths()"></div>
+      <div><label>শেষ মাস</label><input class="inp" type="month" id="bulkTo" value="2026-09" onchange="bulkMonths()"></div>
+      <div><label>প্রতি মাসের টাকা (৳)</label><input class="inp" type="number" id="bulkAmount" value="1000"></div>
+    </div>
+    <div class="sec-title" style="margin-top:14px">কোন কোন মাসে দিয়েছে, টিক দিন:</div>
+    <div class="mgrid" id="bulkChips"></div>
+    <label style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;font-size:14.5px;cursor:pointer">
+      <input type="checkbox" id="bulkJoin" checked style="width:20px;height:20px;margin-top:2px">
+      <span>এই সদস্যের যোগদানের মাসও "শুরুর মাস" ধরে নাও (প্রতিষ্ঠাকালীন সদস্যদের জন্য)</span>
+    </label>
+    <div style="margin-top:12px"><button class="btn" onclick="bulkSave()">✅ সবগুলো একসাথে সেভ করো</button></div>
+    <p class="note">যে মাসের জমা আগে থেকেই তোলা আছে, সেটা বাদ দিয়ে বাকিগুলো উঠবে — একই জমা দুবার উঠবে না। জমার তারিখ ধরা হবে প্রতি মাসের ১০ তারিখ।</p>
+  </div>
   <div class="panel">
     <h2>📅 এই মাসের জমার অবস্থা</h2>
     <div id="monthStatus"></div>
@@ -437,6 +455,10 @@ function renderDeposits() {
   var cur = sel.value;
   sel.innerHTML = data.members.map(function (m) { return '<option value="' + m.id + '">' + m.id + ' — ' + esc(m.name) + '</option>'; }).join('');
   if (cur && memberById(cur)) sel.value = cur;
+  var bsel = document.getElementById('bulkMember');
+  var bcur = bsel.value;
+  bsel.innerHTML = sel.innerHTML;
+  if (bcur && memberById(bcur)) bsel.value = bcur;
   var cm = curMonth();
   document.getElementById('monthStatus').innerHTML = data.members.filter(function (m) { return m.join <= cm; }).map(function (m) {
     var paid = data.deposits.some(function (d) { return d.memberId === m.id && d.month === cm; });
@@ -467,6 +489,37 @@ function delDeposit(uidv) {
   if (!confirm('এই জমার রেকর্ড মুছে যাবে — নিশ্চিত?')) return;
   data.deposits = data.deposits.filter(function (d) { return d.uid !== uidv; });
   save(); renderAll(); toast('জমার রেকর্ড মোছা হয়েছে');
+}
+
+/* ===== পুরনো হিসাব একসাথে তোলা ===== */
+function bulkMonths() {
+  var from = document.getElementById('bulkFrom').value || '2026-01';
+  var to = document.getElementById('bulkTo').value || from;
+  if (to < from) { var t = from; from = to; to = t; }
+  var months = monthsBetween(from, to);
+  document.getElementById('bulkChips').innerHTML = months.map(function (mo) {
+    return '<label class="mchip ok" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" class="bulk-m" value="' + mo + '" checked style="width:17px;height:17px">' + monthName(mo) + '</label>';
+  }).join('');
+}
+function bulkSave() {
+  var mid = document.getElementById('bulkMember').value;
+  var amount = +document.getElementById('bulkAmount').value;
+  if (!mid) { toast('আগে সদস্য বেছে নিন'); return; }
+  if (!amount || amount <= 0) { toast('সঠিক টাকার পরিমাণ দিন'); return; }
+  var checked = Array.prototype.map.call(document.querySelectorAll('.bulk-m:checked'), function (c) { return c.value; });
+  if (!checked.length) { toast('কমপক্ষে একটা মাসে টিক দিন'); return; }
+  var m = memberById(mid);
+  var from = document.getElementById('bulkFrom').value;
+  if (document.getElementById('bulkJoin').checked && m && from && m.join > from) m.join = from;
+  var added = 0, skipped = 0, seq = data.deposits.length;
+  checked.forEach(function (mo) {
+    if (data.deposits.some(function (d) { return d.memberId === mid && d.month === mo; })) { skipped++; return; }
+    seq++;
+    data.deposits.push({ uid: uid(), memberId: mid, month: mo, amount: amount, date: mo + '-10', method: 'নগদ', receiptNo: 'R-' + bn(String(seq).padStart(4, '0')) });
+    added++;
+  });
+  save(); renderAll(); bulkMonths();
+  toast('✅ ' + (m ? m.name : mid) + ' — ' + bn(added) + ' মাসের জমা উঠলো' + (skipped ? ' (' + bn(skipped) + ' মাস আগে থেকেই ছিল)' : ''));
 }
 
 /* ================= আয়-ব্যয় ================= */
@@ -580,6 +633,7 @@ document.getElementById('depDate').value = todayStr();
 document.getElementById('ledDate').value = todayStr();
 fillCats();
 renderAll();
+bulkMonths();
 </script>
 </body>
 </html>
