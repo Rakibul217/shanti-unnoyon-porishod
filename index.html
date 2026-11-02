@@ -77,6 +77,55 @@
   .search-row { display:flex; gap:8px; } .search-row .inp { flex:1; }
   a.filelink { display:flex; align-items:center; gap:10px; background:#f4faf5; border:1.5px solid #cfe5d4; border-radius:12px;
                padding:13px 14px; text-decoration:none; color:#14532d; font-weight:700; margin-top:9px; }
+/* ===== মাসিক প্রতিবেদন (চিঠি) ===== */
+.letter-wrap { max-width: 840px; margin: 0 auto; }
+.letter { background:#fff; border:1px solid #d7dce2; box-shadow:0 4px 24px rgba(15,40,25,.08); padding:46px 50px; color:#111; font-size:15.5px; line-height:1.75; }
+.letter .lt-to { margin-bottom:18px; }
+.letter .lt-sub { font-weight:700; margin-bottom:16px; }
+.letter .lt-body { text-align:justify; margin-bottom:6px; }
+.letter .lt-chok { text-align:center; font-size:19px; font-weight:800; margin:10px 0 12px; }
+.letter .lt-tables { display:flex; gap:20px; align-items:flex-start; }
+.letter .lt-tables table { flex:1; border-collapse:collapse; width:100%; font-size:14.5px; }
+.letter .lt-tables th, .letter .lt-tables td { border:1px solid #555; padding:4px 8px; }
+.letter .lt-tables th { background:#f1f3f1; }
+.letter .lt-tables td.amt, .letter .lt-tables th.amt { text-align:right; }
+.letter .lt-total { border:2px solid #111; padding:7px 12px; font-weight:800; margin-top:14px; }
+.letter table.lt-sum { border-collapse:collapse; width:100%; font-size:14.5px; margin-top:12px; }
+.letter table.lt-sum th, .letter table.lt-sum td { border:1px solid #555; padding:4px 8px; }
+.letter table.lt-sum th { background:#f1f3f1; }
+.letter table.lt-sum td.amt, .letter table.lt-sum th.amt { text-align:right; }
+.letter .lt-note { margin-top:16px; }
+.letter .lt-close { margin-top:18px; }
+.letter .lt-sign { text-align:right; margin-top:52px; line-height:1.6; }
+.letter.compact { font-size:13.5px; line-height:1.5; }
+.letter.compact .lt-tables table { font-size:13px; }
+.letter.compact .lt-tables th, .letter.compact .lt-tables td { padding:2px 6px; }
+.letter.compact .lt-sign { margin-top:26px; }
+@page { size: A4; margin: 13mm; }
+@media print {
+  .letter { font-size:13.8px; line-height:1.52; padding:0; }
+  .letter .lt-to { margin-bottom:10px; }
+  .letter .lt-sub { margin-bottom:10px; }
+  .letter .lt-chok { font-size:17px; margin:6px 0 8px; }
+  .letter .lt-tables table { font-size:13.2px; }
+  .letter .lt-tables th, .letter .lt-tables td { padding:2.5px 6px; }
+  .letter .lt-total { margin-top:10px; padding:5px 10px; }
+  .letter .lt-note { margin-top:10px; }
+  .letter .lt-close { margin-top:10px; }
+  .letter .lt-sign { margin-top:30px; }
+  .letter.compact { font-size:12.8px; line-height:1.45; }
+  .letter.compact .lt-tables table { font-size:12.4px; }
+  .letter.compact .lt-sign { margin-top:20px; }
+  header.top, nav.tabs, .toast, .overlay { display:none !important; }
+  .view { display:none !important; }
+  #view-report { display:block !important; }
+  #view-report .no-print { display:none !important; }
+  .letter-block { display:none !important; }
+  .letter-block.active-print { display:block !important; }
+  main { padding:0 !important; }
+  body { background:#fff !important; }
+  .letter { border:none; box-shadow:none; padding:0; }
+}
 </style>
 </head>
 <body>
@@ -92,6 +141,8 @@
   <button data-view="members" onclick="go('members')">👥 সদস্য</button>
   <button data-view="apps" onclick="go('apps')">📥 আবেদন<span class="badge" id="appBadge" style="display:none">0</span></button>
   <button data-view="deposits" onclick="go('deposits')">💰 জমা</button>
+
+   <button data-view="report" onclick="go('report');renderReport()">📄 প্রতিবেদন</button>
   <button data-view="ledger" onclick="go('ledger')">🧾 আয়-ব্যয়</button>
   <button data-view="apply" onclick="go('apply')">📝 আবেদন ফরম</button>
   <button data-view="more" onclick="go('more')">📋 ফরম ও গঠনতন্ত্র</button>
@@ -183,6 +234,29 @@
   </div>
 </section>
 
+<!-- ================= মাসিক প্রতিবেদন ================= -->
+<section class="view" id="view-report">
+  <div class="panel no-print">
+    <h2>📄 মাসিক চাঁদার প্রতিবেদন — সভাপতির জন্য চিঠি</h2>
+    <p class="note" style="margin:0 0 12px">মাস বেছে নিলেই ওই মাসের জমা থেকে চিঠিটা নিজে নিজে তৈরি হয়ে যাবে — ছক, মোট টাকা (অঙ্কে ও কথায়), বকেয়া সদস্যদের নামসহ। তারপর প্রিন্ট বাটনে চাপ দিলে প্রিন্ট বা PDF সেভ — সই করে সভাপতির কাছে দিলেই হবে।</p>
+    <div class="fgrid">
+      <div><label>মাস</label><select class="inp" id="repMonth" onchange="renderReport()"></select></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn" onclick="printBlock('blkChanda')">🖨 চিঠি প্রিন্ট / PDF সেভ করো</button></div>
+  </div>
+  <div class="letter-wrap letter-block" id="blkChanda"><div class="letter" id="letterSheet"></div></div>
+
+  <div class="panel no-print" style="margin-top:22px">
+    <h2>📊 আয়-ব্যয় সারসংক্ষেপ (মাসভিত্তিক ও বার্ষিক)</h2>
+    <p class="note" style="margin:0 0 12px">বছর বেছে নিলেই মাস ধরে ধরে হিসাব তৈরি: কোন মাসে কত চাঁদা এল, কত খরচ হল, সারা বছরে মোট আয়-ব্যয়, আর সংগঠনের বর্তমান মোট তহবিল কত।</p>
+    <div class="fgrid">
+      <div><label>বছর</label><select class="inp" id="repYear" onchange="renderSummary()"></select></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn" onclick="printBlock('blkSummary')">🖨 সারসংক্ষেপ প্রিন্ট / PDF সেভ করো</button></div>
+  </div>
+  <div class="letter-wrap letter-block" id="blkSummary"><div class="letter" id="summarySheet"></div></div>
+</section>
+
 <!-- ================= আয়-ব্যয় ================= -->
 <section class="view" id="view-ledger">
   <div class="panel">
@@ -230,7 +304,8 @@
         <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
       <div style="grid-column:1/-1"><label>১১. অন্য সংগঠন/প্রতিষ্ঠানের সাথে যুক্ত থাকলে বিবরণ</label><input class="inp" id="a_other"></div>
       <div><label>📷 পাসপোর্ট সাইজের ছবি</label><input class="inp" type="file" id="a_photo" accept="image/*"></div>
-      <div><label>🪪 NID ছবি (সামনে)</label><input class="inp" type="file" id="a_nidf" accept="image/*"></div>
+
+           <div><label>🪪 NID ছবি (সামনে)</label><input class="inp" type="file" id="a_nidf" accept="image/*"></div>
       <div><label>🪪 NID ছবি (পেছনে)</label><input class="inp" type="file" id="a_nidb" accept="image/*"></div>
     </div>
     <label style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;font-size:14.5px;cursor:pointer">
@@ -365,7 +440,8 @@ function renderDash() {
 
   document.getElementById('dueList').innerHTML = dueMembers.length ? dueMembers.map(function (m) {
     return '<div class="mrow" onclick="openProfile(\'' + m.id + '\')">' + avatarHtml(m) + '<div style="flex:1"><div class="nm">' + esc(m.name) + '</div><div class="meta">' + m.id + (m.mobile ? ' · ' + esc(m.mobile) : '') + '</div></div><span class="chip due">বকেয়া ' + money(FEE) + '</span></div>';
-  }).join('') : '<div class="empty">🎉 এই মাসে কারো চাঁদা বকেয়া নেই!</div>';
+
+                                                                                      }).join('') : '<div class="empty">🎉 এই মাসে কারো চাঁদা বকেয়া নেই!</div>';
 
   var badge = document.getElementById('appBadge');
   badge.style.display = pending ? 'inline-block' : 'none'; badge.textContent = bn(pending);
@@ -496,7 +572,8 @@ function bulkMonths() {
   var from = document.getElementById('bulkFrom').value || '2026-01';
   var to = document.getElementById('bulkTo').value || from;
   if (to < from) { var t = from; from = to; to = t; }
-  var months = monthsBetween(from, to);
+
+   var months = monthsBetween(from, to);
   document.getElementById('bulkChips').innerHTML = months.map(function (mo) {
     return '<label class="mchip ok" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" class="bulk-m" value="' + mo + '" checked style="width:17px;height:17px">' + monthName(mo) + '</label>';
   }).join('');
@@ -634,6 +711,117 @@ document.getElementById('ledDate').value = todayStr();
 fillCats();
 renderAll();
 bulkMonths();
+</script>
+
+<script>
+/* ================= মাসিক প্রতিবেদন ও আয়-ব্যয় সারসংক্ষেপ ================= */
+var WORDS99 = ['','এক','দুই','তিন','চার','পাঁচ','ছয়','সাত','আট','নয়','দশ','এগারো','বারো','তেরো','চৌদ্দ','পনেরো','ষোলো','সতেরো','আঠারো','উনিশ','বিশ','একুশ','বাইশ','তেইশ','চব্বিশ','পঁচিশ','ছাব্বিশ','সাতাশ','আঠাশ','ঊনত্রিশ','ত্রিশ','একত্রিশ','বত্রিশ','তেত্রিশ','চৌত্রিশ','পঁয়ত্রিশ','ছত্রিশ','সাঁইত্রিশ','আটত্রিশ','ঊনচল্লিশ','চল্লিশ','একচল্লিশ','বিয়াল্লিশ','তেতাল্লিশ','চুয়াল্লিশ','পঁয়তাল্লিশ','ছেচল্লিশ','সাতচল্লিশ','আটচল্লিশ','ঊনপঞ্চাশ','পঞ্চাশ','একান্ন','বাহান্ন','তিপ্পান্ন','চুয়ান্ন','পঞ্চান্ন','ছাপ্পান্ন','সাতান্ন','আটান্ন','ঊনষাট','ষাট','একষট্টি','বাষট্টি','তেষট্টি','চৌষট্টি','পঁয়ষট্টি','ছেষট্টি','সাতষট্টি','আটষট্টি','ঊনসত্তর','সত্তর','একাত্তর','বাহাত্তর','তিয়াত্তর','চুয়াত্তর','পঁচাত্তর','ছিয়াত্তর','সাতাত্তর','আটাত্তর','ঊনআশি','আশি','একাশি','বিরাশি','তিরাশি','চুরাশি','পঁচাশি','ছিয়াশি','সাতাশি','আটাশি','ঊননব্বই','নব্বই','একানব্বই','বিরানব্বই','তিরানব্বই','চুরানব্বই','পঁচানব্বই','ছিয়ানব্বই','সাতানব্বই','আটানব্বই','নিরানব্বই'];
+function takaWords(n) {
+  n = Math.round(Math.abs(+n || 0));
+  if (n === 0) return 'শূন্য';
+  function two(x) { return WORDS99[x] || ''; }
+  function three(x) { var h = Math.floor(x / 100), r = x % 100, s = ''; if (h) s = two(h) + ' শত'; if (r) s += (s ? ' ' : '') + two(r); return s; }
+  var parts = [];
+  var crore = Math.floor(n / 10000000); n %= 10000000;
+
+   var lakh = Math.floor(n / 100000); n %= 100000;
+  var hajar = Math.floor(n / 1000); n %= 1000;
+  if (crore) parts.push(three(crore) + ' কোটি');
+  if (lakh) parts.push(two(lakh) + ' লাখ');
+  if (hajar) parts.push(two(hajar) + ' হাজার');
+  if (n) parts.push(three(n));
+  return parts.join(' ');
+}
+function printBlock(id) {
+  document.querySelectorAll('.letter-block').forEach(function (b) { b.classList.toggle('active-print', b.id === id); });
+  setTimeout(function () { window.print(); }, 60);
+}
+function fillRepMonths() {
+  var sel = document.getElementById('repMonth'); if (!sel) return null;
+  var start = '2026-01';
+  if (data.members.length) start = data.members.map(function (m) { return m.join || '2026-01'; }).sort()[0];
+  var months = monthsBetween(start, curMonth()).reverse();
+  var cur = sel.value;
+  sel.innerHTML = months.map(function (m) { return '<option value="' + m + '">' + monthName(m) + '</option>'; }).join('');
+  sel.value = (cur && months.indexOf(cur) >= 0) ? cur : months[0];
+  return sel.value;
+}
+function renderReport() {
+  var ym = fillRepMonths(); if (!ym) return;
+  var p = ym.split('-'), y = +p[0], mo = +p[1];
+  var lastDay = new Date(y, mo, 0).getDate();
+  var yy = String(y).slice(2);
+  var mm = String(mo).padStart(2, '0');
+  var d1 = bn('01/' + mm + '/' + yy), d2 = bn(String(lastDay).padStart(2, '0') + '/' + mm + '/' + yy);
+  var paid = [], due = [];
+  data.members.slice().sort(function (a, b) { return a.id < b.id ? -1 : 1; }).forEach(function (m) {
+    if (m.join && m.join > ym) return;
+    var amt = paidMonths(m.id)[ym] || 0;
+    if (amt > 0) paid.push({ name: m.name, amt: amt }); else due.push(m.name);
+  });
+  var total = paid.reduce(function (s, x) { return s + x.amt; }, 0);
+  var mname = MONTHS_BN[mo - 1];
+  function tbl(rows, off) {
+    var h = '<table><tr><th style="width:52px">ক্রমিক</th><th>নাম</th><th style="width:76px">মাস</th><th class="amt" style="width:66px">টাকা</th></tr>';
+    rows.forEach(function (r, i) { h += '<tr><td>' + bn(off + i + 1) + '.</td><td>' + esc(r.name) + '</td><td>' + mname + '</td><td class="amt">' + bn(r.amt) + '</td></tr>'; });
+    return h + '</table>';
+  }
+  var half = Math.ceil(paid.length / 2);
+  var html = '';
+  html += '<div class="lt-to">বরাবর<br>সভাপতি<br>শান্তি ও উন্নয়ন পরিষদ<br>জয়সেনা, তেরখাদা, খুলনা।</div>';
+  html += '<div class="lt-sub">বিষয়ঃ ' + d1 + ' খ্রিঃ হতে ' + d2 + ' খ্রিঃ পর্যন্ত উত্তোলনকৃত চাঁদার হিসাব।</div>';
+  html += '<div class="lt-body">জনাব,<br>সবিনয় নিবেদন এই যে, ' + d1 + ' খ্রিঃ হতে ' + d2 + ' খ্রিঃ পর্যন্ত শান্তি ও উন্নয়ন পরিষদের ' + bn(paid.length) + ' জন সদস্য হতে প্রাপ্ত চাঁদার তথ্য নিম্নে "ছক" মোতাবেক উল্লেখ করা হলোঃ</div>';
+  html += '<div class="lt-chok">"ছক"</div>';
+  if (paid.length) html += '<div class="lt-tables">' + tbl(paid.slice(0, half), 0) + tbl(paid.slice(half), half) + '</div>';
+  else html += '<div class="lt-body">এই মাসে কোনো চাঁদা আদায় হয়নি।</div>';
+  html += '<div class="lt-total">মোট টাকাঃ ' + bn(total.toLocaleString('en-IN')) + '//= ' + takaWords(total) + ' টাকা</div>';
+  if (due.length) html += '<div class="lt-note">বিঃদ্রঃ- ' + bn(due.length) + ' জন সদস্যের ' + bn((due.length * FEE).toLocaleString('en-IN')) + ' টাকা বকেয়া।<br>সদস্যগণঃ ' + due.map(esc).join(', ') + '।</div>';
+  html += '<div class="lt-close">অতএব, ইহা আপনার অবগতির জন্য প্রেরণ করা হলো।</div>';
+  html += '<div class="lt-sign">রাকিবুল ইসলাম<br>শান্তি ও উন্নয়ন পরিষদ<br>জয়সেনা, তেরখাদা, খুলনা।</div>';
+  var sheet = document.getElementById('letterSheet');
+  sheet.innerHTML = html;
+  sheet.classList.toggle('compact', paid.length > 26);
+  renderSummary();
+}
+function fillRepYears() {
+  var sel = document.getElementById('repYear'); if (!sel) return null;
+  var years = {};
+  data.deposits.forEach(function (d) { years[d.month.slice(0, 4)] = 1; });
+  data.ledger.forEach(function (l) { if (l.date) years[l.date.slice(0, 4)] = 1; });
+  years[curMonth().slice(0, 4)] = 1;
+  var list = Object.keys(years).sort().reverse();
+  var cur = sel.value;
+  sel.innerHTML = list.map(function (yr) { return '<option value="' + yr + '">' + bn(yr) + '</option>'; }).join('');
+  sel.value = (cur && years[cur]) ? cur : list[0];
+  return sel.value;
+}
+function renderSummary() {
+  var yr = fillRepYears(); if (!yr) return;
+  var yStart = yr + '-01';
+  function sumDep(ym) { return data.deposits.filter(function (d) { return d.month === ym; }).reduce(function (s, d) { return s + (+d.amount || 0); }, 0); }
+  function sumLed(ym, t) { return data.ledger.filter(function (l) { return l.type === t && (l.date || '').slice(0, 7) === ym; }).reduce(function (s, l) { return s + (+l.amount || 0); }, 0); }
+  var opening = data.deposits.filter(function (d) { return d.month < yStart; }).reduce(function (s, d) { return s + (+d.amount || 0); }, 0)
+    + data.ledger.filter(function (l) { return (l.date || '') < yStart + '-01'; }).reduce(function (s, l) { return s + (l.type === 'in' ? (+l.amount || 0) : -(+l.amount || 0)); }, 0);
+  var lastMo = (curMonth().slice(0, 4) === yr) ? +curMonth().slice(5, 7) : 12;
+  var rows = '', run = opening, tCh = 0, tIn = 0, tOut = 0;
+  for (var mo = 1; mo <= lastMo; mo++) {
+    var ym = yr + '-' + String(mo).padStart(2, '0');
+    var ch = sumDep(ym), oi = sumLed(ym, 'in'), ex = sumLed(ym, 'out');
+    var tin = ch + oi; run += tin - ex; tCh += ch; tIn += oi; tOut += ex;
+    rows += '<tr><td>' + MONTHS_BN[mo - 1] + '</td><td class="amt">' + bn(ch.toLocaleString('en-IN')) + '</td><td class="amt">' + bn(oi.toLocaleString('en-IN')) + '</td><td class="amt">' + bn(tin.toLocaleString('en-IN')) + '</td><td class="amt">' + bn(ex.toLocaleString('en-IN')) + '</td><td class="amt"><b>' + bn(run.toLocaleString('en-IN')) + '</b></td></tr>';
+  }
+  var totIn = tCh + tIn, surplus = totIn - tOut;
+  var html = '';
+  html += '<div class="lt-chok" style="margin-top:0">শান্তি ও উন্নয়ন পরিষদ</div>';
+  html += '<div style="text-align:center;margin-top:-8px">জয়সেনা, তেরখাদা, খুলনা</div>';
+  html += '<div style="text-align:center;font-weight:800;font-size:17px;margin:10px 0 4px">আয়-ব্যয় সারসংক্ষেপ — ' + bn(yr) + '</div>';
+  html += '<div style="text-align:center">বছরের শুরুতে তহবিল ছিল ' + money(opening) + '। মাস ধরে ধরে চাঁদা আদায়, অন্যান্য আয়, ব্যয় ও মাস শেষে তহবিলের হিসাব নিচে দেওয়া হলো।</div>';
+  html += '<table class="lt-sum"><tr><th>মাস</th><th class="amt">চাঁদা আদায়</th><th class="amt">অন্য আয়</th><th class="amt">মোট আয়</th><th class="amt">ব্যয়</th><th class="amt">মাস শেষে তহবিল</th></tr>' + rows;
+  html += '<tr><td><b>সারা বছর</b></td><td class="amt"><b>' + bn(tCh.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(tIn.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(tOut.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(run.toLocaleString('en-IN')) + '</b></td></tr></table>';
+  html += '<div class="lt-total">এই বছরে মোট আয়ঃ ' + bn(totIn.toLocaleString('en-IN')) + ' টাকা · মোট ব্যয়ঃ ' + bn(tOut.toLocaleString('en-IN')) + ' টাকা · উদ্বৃত্তঃ ' + bn(surplus.toLocaleString('en-IN')) + ' টাকা · বর্তমান মোট তহবিলঃ ' + bn(run.toLocaleString('en-IN')) + ' টাকা (' + takaWords(run) + ' টাকা মাত্র)</div>';
+  html += '<div class="lt-sign">প্রস্তুত করেছেন<br>রাকিবুল ইসলাম (ম্যানেজার)<br>শান্তি ও উন্নয়ন পরিষদ<br>তারিখঃ ' + bn(todayStr()) + '</div>';
+  document.getElementById('summarySheet').innerHTML = html;
+}
 </script>
 </body>
 </html>
