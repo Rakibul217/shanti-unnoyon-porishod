@@ -142,6 +142,7 @@
   <button data-view="apps" onclick="go('apps')">📥 আবেদন<span class="badge" id="appBadge" style="display:none">0</span></button>
   <button data-view="deposits" onclick="go('deposits')">💰 জমা</button>
   <button data-view="report" onclick="go('report');renderReport()">📄 প্রতিবেদন</button>
+  <button data-view="arrears" onclick="go('arrears');renderArrears()">📌 বকেয়া</button>
   <button data-view="ledger" onclick="go('ledger')">🧾 আয়-ব্যয়</button>
   <button data-view="apply" onclick="go('apply')">📝 আবেদন ফরম</button>
   <button data-view="more" onclick="go('more')">📋 ফরম ও গঠনতন্ত্র</button>
@@ -255,6 +256,26 @@
     <div style="margin-top:12px"><button class="btn" onclick="printBlock('blkSummary')">🖨 সারসংক্ষেপ প্রিন্ট / PDF সেভ করো</button></div>
   </div>
   <div class="letter-wrap letter-block" id="blkSummary"><div class="letter" id="summarySheet"></div></div>
+
+  <div class="panel no-print" id="noticePanel" style="margin-top:22px;display:none">
+    <h2>✉️ বকেয়ার কারণ দর্শানো নোটিশ (ধারা ৭)</h2>
+    <p class="note" style="margin:0 0 12px" id="noticeFor"></p>
+    <div class="fgrid">
+      <div><label>জবাব/পরিশোধের শেষ তারিখ</label><input class="inp" type="date" id="noticeDeadline" onchange="renderNotice(currentNoticeId)"></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn" onclick="printBlock('blkNotice')">🖨 নোটিশ প্রিন্ট / PDF সেভ করো</button></div>
+  </div>
+  <div class="letter-wrap letter-block" id="blkNotice" style="display:none"><div class="letter" id="noticeSheet"></div></div>
+</section>
+
+<!-- ================= বকেয়া ================= -->
+<section class="view" id="view-arrears">
+  <div class="panel">
+    <h2>📌 বকেয়ার হিসাব</h2>
+    <div id="arrearsSummary"></div>
+    <div id="arrearsList"></div>
+    <p class="note">নিয়ম: যোগদানের পর থেকে এই মাস পর্যন্ত যত মাসের চাঁদা পাওনা, তা থেকে মোট যত টাকা জমা দিয়েছে বাদ — বাকিটাই বকেয়া। কেউ অনেক মাসের টাকা একসাথে দিয়ে দিলে বকেয়া কমে শূন্য হয়ে যাবে।</p>
+  </div>
 </section>
 
 <!-- ================= আয়-ব্যয় ================= -->
@@ -291,7 +312,7 @@
       <div><label>২. পিতা/স্বামীর নাম</label><input class="inp" id="a_father"></div>
       <div><label>৩. মাতার নাম</label><input class="inp" id="a_mother"></div>
       <div><label>৪. গ্রাম</label><input class="inp" id="a_village"></div>
-      <div><label>ডাকঘর</label><input class="inp" id="a_post"></div>
+<div><label>ডাকঘর</label><input class="inp" id="a_post"></div>
       <div><label>থানা/উপজেলা</label><input class="inp" id="a_upazila"></div>
       <div><label>জেলা</label><input class="inp" id="a_district"></div>
       <div><label>৫. জাতীয় পরিচয়পত্র/জন্মনিবন্ধন নং *</label><input class="inp" id="a_nid"></div>
@@ -446,7 +467,64 @@ function memberById(id) { return data.members.find(function (m) { return m.id ==
 function paidMonths(memberId) {
   var s = {}; data.deposits.forEach(function (d) { if (d.memberId === memberId) s[d.month] = (s[d.month] || 0) + (+d.amount || 0); }); return s;
 }
+function paidDates(memberId) {
+  var s = {}; data.deposits.forEach(function (d) { if (d.memberId === memberId && d.date && (!s[d.month] || d.date < s[d.month])) s[d.month] = d.date; }); return s;
+}
+function shortDate(iso) { if (!iso) return ''; var p = iso.split('-'); return p.length === 3 ? bn(p[2]) + '/' + bn(p[1]) : bn(iso); }
+function arrearsOf(m) {
+  var months = monthsBetween(m.join, curMonth());
+  var paid = memberTotal(m.id);
+  var dueAmt = months.length * FEE - paid;
+  if (dueAmt < 0) dueAmt = 0;
+  return { payable: months.length, paid: paid, dueAmt: dueAmt, monthsBehind: Math.ceil(dueAmt / FEE) };
+}
+function renderArrears() {
+  var rows = [], totDue = 0;
+  data.members.forEach(function (m) { var a = arrearsOf(m); if (a.dueAmt > 0) { rows.push({ m: m, a: a }); totDue += a.dueAmt; } });
+  rows.sort(function (x, y) { return y.a.dueAmt - x.a.dueAmt; });
+  var sum = document.getElementById('arrearsSummary'), list = document.getElementById('arrearsList');
+  if (!sum || !list) return;
+  if (!rows.length) { sum.innerHTML = ''; list.innerHTML = '<div class="empty">🎉 কারো কোনো বকেয়া নেই — সবার হিসাব পরিষ্কার।</div>'; return; }
+  sum.innerHTML = '<div class="cards" style="margin-bottom:6px"><div class="card alert"><div class="ic">📌</div><div class="num">' + money(totDue) + '</div><div class="lbl">মোট বকেয়া টাকা</div></div><div class="card alert"><div class="ic">👥</div><div class="num">' + bn(rows.length) + ' জন</div><div class="lbl">বকেয়া সদস্য</div></div></div>';
+  list.innerHTML = rows.map(function (r) {
+    return '<div class="mrow" onclick="openProfile(\'' + r.m.id + '\')"><span class="avatar">👤</span><span style="flex:1"><span class="nm">' + esc(r.m.name) + '</span><br><span class="meta">' + r.m.id + ' · পাওনা ' + bn(r.a.payable) + ' মাসের, জমা ' + money(r.a.paid) + '</span></span><span class="chip due">' + bn(r.a.monthsBehind) + ' মাস বকেয়া · ' + money(r.a.dueAmt) + '</span>' + (r.a.monthsBehind >= 3 ? '<button class="btn small" onclick="event.stopPropagation();openNotice(\'' + r.m.id + '\')">✉️ চিঠি</button>' : '') + '</div>';
+  }).join('');
+}
 function memberTotal(memberId) { return data.deposits.filter(function (d) { return d.memberId === memberId; }).reduce(function (s, d) { return s + (+d.amount || 0); }, 0); }
+var currentNoticeId = '';
+function unpaidMonthsOf(m) {
+  var paid = paidMonths(m.id);
+  return monthsBetween(m.join, curMonth()).filter(function (mo) { return (paid[mo] || 0) < FEE; });
+}
+function openNotice(id) {
+  currentNoticeId = id;
+  go('report');
+  document.getElementById('noticePanel').style.display = 'block';
+  document.getElementById('blkNotice').style.display = '';
+  var inp = document.getElementById('noticeDeadline');
+  if (!inp.value) { var d = new Date(); d.setDate(d.getDate() + 7); inp.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  renderNotice(id);
+  setTimeout(function () { document.getElementById('noticePanel').scrollIntoView({ behavior: 'smooth' }); }, 60);
+}
+function renderNotice(id) {
+  var m = memberById(id || currentNoticeId); if (!m) return;
+  currentNoticeId = m.id;
+  var a = arrearsOf(m);
+  var un = unpaidMonthsOf(m);
+  var dl = document.getElementById('noticeDeadline').value;
+  var p = dl ? dl.split('-') : null;
+  var dlTxt = p ? bn(p[2]) + '/' + bn(p[1]) + '/' + bn(p[0]) + ' তারিখের মধ্যে' : 'দ্রুততম সময়ের মধ্যে';
+  var monthList = un.map(function (mo) { return monthName(mo); }).join(', ');
+  document.getElementById('noticeFor').textContent = 'সদস্য: ' + m.name + ' (' + m.id + ') · বকেয়া ' + bn(a.monthsBehind) + ' মাস · ' + money(a.dueAmt);
+  document.getElementById('noticeSheet').innerHTML =
+    '<div class="lt-to">বরাবর<br><b>' + esc(m.name) + '</b><br>সদস্য আইডি: ' + m.id + '<br>শান্তি ও উন্নয়ন পরিষদ<br>জয়সেনা, তেরখাদা, খুলনা।</div>' +
+    '<div class="lt-sub">বিষয়: মাসিক চাঁদা বকেয়া প্রসঙ্গে কারণ দর্শানোর নোটিশ (গঠনতন্ত্রের ধারা ৭ অনুযায়ী)।</div>' +
+    '<p class="lt-body">জনাব,</p>' +
+    '<p class="lt-body">আপনি অত্র পরিষদের একজন সম্মানিত সদস্য। পরিষদের হিসাব অনুযায়ী, আপনি ' + monthList + ' — মোট ' + bn(a.monthsBehind) + ' মাসের মাসিক চাঁদা বাবদ ' + money(a.dueAmt) + ' (' + takaWords(a.dueAmt) + ' টাকা মাত্র) অদ্যাবধি পরিশোধ করেননি, যা গঠনতন্ত্রের ধারা ৭-এর পরিপন্থী। উল্লেখ্য, গঠনতন্ত্রের নীতিমালা অনুযায়ী চাঁদা পরিশোধে অসমর্থ হলে কমপক্ষে ২ (দুই) মাস পূর্বে লিখিতভাবে আবেদন করার বিধান রয়েছে।</p>' +
+    '<p class="lt-body">অতএব, আপনাকে অনুরোধ করা যাচ্ছে যে, ' + dlTxt + ' উক্ত বকেয়া চাঁদা পরিশোধ করুন, অথবা চাঁদা পরিশোধ না করার কারণ লিখিতভাবে পরিষদ কার্যালয়ে দাখিল করুন। নির্ধারিত সময়ের মধ্যে পরিশোধ কিংবা লিখিত জবাব পাওয়া না গেলে গঠনতন্ত্র অনুযায়ী পরবর্তী ব্যবস্থা গ্রহণ করা হবে।</p>' +
+    '<p class="lt-close">অতএব, ইহা আপনার অবগতি ও প্রয়োজনীয় ব্যবস্থা গ্রহণের জন্য প্রেরণ করা হলো।</p>' +
+    '<div class="lt-sign">তারিখ: ' + bn(todayStr().split('-')[2]) + '/' + bn(todayStr().split('-')[1]) + '/' + bn(todayStr().split('-')[0]) + '<br><br>রাকিবুল ইসলাম (ম্যানেজার)<br>শান্তি ও উন্নয়ন পরিষদ<br>জয়সেনা, তেরখাদা, খুলনা।</div>';
+}
 var toastTimer;
 function toast(msg) {
   var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
@@ -525,6 +603,7 @@ function openProfile(id) {
   var cm = curMonth();
   var months = monthsBetween(m.join, cm);
   var paid = paidMonths(id);
+  var pdates = paidDates(id);
   var missed = months.filter(function (mo) { return !paid[mo]; });
   var rows = [
     ['সদস্য আইডি', m.id], ['পদ', m.role || 'সাধারণ সদস্য'], ['পিতা/স্বামীর নাম', m.father], ['মাতার নাম', m.mother],
@@ -540,7 +619,7 @@ function openProfile(id) {
     '<div style="font-size:14.5px">মোট জমা: <b>' + money(memberTotal(id)) + '</b> · বকেয়া মাস: <b style="color:#991b1b">' + bn(missed.length) + 'টি</b>' + (missed.length ? ' (' + money(missed.length * FEE) + ')' : '') + '</div>' +
     '<div class="mgrid">' + months.map(function (mo) {
       var ok = !!paid[mo];
-      return '<span class="mchip ' + (ok ? 'ok' : 'due') + (mo === cm ? ' cur' : '') + '">' + monthName(mo) + (ok ? ' ✓ ' + money(paid[mo]) : ' ✗ বকেয়া') + '</span>';
+      return '<span class="mchip ' + (ok ? 'ok' : 'due') + (mo === cm ? ' cur' : '') + '">' + monthName(mo) + (ok ? ' ✓ ' + money(paid[mo]) + (pdates[mo] ? ' · ' + shortDate(pdates[mo]) : '') : ' ✗ বকেয়া') + '</span>';
     }).join('') + '</div>' +
     '<div class="qa"><button class="btn" onclick="closeProfile();go(\'deposits\');document.getElementById(\'depMember\').value=\'' + id + '\'">➕ এই সদস্যের জমা যোগ করো</button>' +
     '<button class="btn light" onclick="openMemberForm(\'' + id + '\')">✏ তথ্য সংশোধন করো</button></div>';
@@ -800,7 +879,7 @@ function importData(inp) {
 }
 
 /* ================= শুরু ================= */
-function renderAll() { renderDash(); renderMembers(); renderApps(); renderDeposits(); renderLedger(); }
+function renderAll() { renderDash(); renderMembers(); renderApps(); renderDeposits(); renderLedger(); renderArrears(); }
 load();
 document.getElementById('depMonth').value = curMonth();
 document.getElementById('depDate').value = todayStr();
@@ -913,7 +992,7 @@ function renderSummary() {
   html += '<div style="text-align:center;font-weight:800;font-size:17px;margin:10px 0 4px">আয়-ব্যয় সারসংক্ষেপ — ' + bn(yr) + '</div>';
   html += '<div style="text-align:center">বছরের শুরুতে তহবিল ছিল ' + money(opening) + '। মাস ধরে ধরে চাঁদা আদায়, অন্যান্য আয়, ব্যয় ও মাস শেষে তহবিলের হিসাব নিচে দেওয়া হলো।</div>';
   html += '<table class="lt-sum"><tr><th>মাস</th><th class="amt">চাঁদা আদায়</th><th class="amt">অন্য আয়</th><th class="amt">মোট আয়</th><th class="amt">ব্যয়</th><th class="amt">মাস শেষে তহবিল</th></tr>' + rows;
-  html += '<tr><td><b>সারা বছর</b></td><td class="amt"><b>' + bn(tCh.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(tIn.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(totIn.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(tOut.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(run.toLocaleString('en-IN')) + '</b></td></tr></table>';
+  html += '<tr><td><b>সারা বছর</b></td><td class="amt"><b>' + bn(tCh.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(tIn.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(tOut.toLocaleString('en-IN')) + '</b></td><td class="amt"><b>' + bn(run.toLocaleString('en-IN')) + '</b></td></tr></table>';
   html += '<div class="lt-total">এই বছরে মোট আয়ঃ ' + bn(totIn.toLocaleString('en-IN')) + ' টাকা · মোট ব্যয়ঃ ' + bn(tOut.toLocaleString('en-IN')) + ' টাকা · উদ্বৃত্তঃ ' + bn(surplus.toLocaleString('en-IN')) + ' টাকা · বর্তমান মোট তহবিলঃ ' + bn(run.toLocaleString('en-IN')) + ' টাকা (' + takaWords(run) + ' টাকা মাত্র)</div>';
   html += '<div class="lt-sign">প্রস্তুত করেছেন<br>রাকিবুল ইসলাম (ম্যানেজার)<br>শান্তি ও উন্নয়ন পরিষদ<br>তারিখঃ ' + bn(todayStr()) + '</div>';
   document.getElementById('summarySheet').innerHTML = html;
