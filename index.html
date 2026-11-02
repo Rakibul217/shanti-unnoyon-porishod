@@ -100,7 +100,8 @@
 .letter .lt-sign { text-align:right; margin-top:52px; line-height:1.6; }
 .letter.compact { font-size:13.5px; line-height:1.5; }
 .letter.compact .lt-tables table { font-size:13px; }
-.letter.compact .lt-tables th, .letter.compact .lt-tables td { padding:2px 6px; }
+.letter.compact .lt-tables th, .letter.compact .lt-tables td { padding:2px 6px; } .
+ letter.compact table.lt-sum th, .letter.compact table.lt-sum td { padding:2px 8px; font-size:13.5px; }
 .letter.compact .lt-sign { margin-top:26px; }
 @page { size: A4; margin: 13mm; }
 @media print {
@@ -269,6 +270,15 @@
     <div style="margin-top:12px"><button class="btn" onclick="printBlock('blkNotice')">🖨 নোটিশ প্রিন্ট / PDF সেভ করো</button></div>
   </div>
   <div class="letter-wrap letter-block" id="blkNotice" style="display:none"><div class="letter" id="noticeSheet"></div></div>   <div class="panel no-print" id="stmtPanel" style="margin-top:22px">     <h2>🧾 সদস্যের স্টেটমেন্ট (হিসাব বিবরণী)</h2>     <p class="note" style="margin:0 0 12px">কোনো সদস্য নিজের হিসাব দেখতে চাইলে — সদস্য বেছে নিলেই তার পুরো বিবরণী তৈরি হয়ে যাবে: কোন মাসে, কত তারিখে, কত টাকা জমা দিয়েছে, কোন মাস বকেয়া, মোট জমা আর মোট বকেয়া কত। প্রিন্ট করে বা PDF পাঠিয়ে দিলেই হবে। সদস্যের প্রোফাইল থেকেও "🧾 স্টেটমেন্ট" বোতামে একই বিবরণী আসে।</p>     <div class="fgrid">       <div><label>সদস্য</label><select class="inp" id="stmtMember" onchange="renderStatement()"></select></div>     </div>     <div style="margin-top:12px"><button class="btn" onclick="printBlock('blkStatement')">🖨 স্টেটমেন্ট প্রিন্ট / PDF সেভ করো</button></div>   </div>   <div class="letter-wrap letter-block" id="blkStatement"><div class="letter" id="stmtSheet"></div></div>
+  <div class="panel no-print" id="totalsPanel" style="margin-top:22px">
+    <h2>📋 সব সদস্যের মোট টাকার ছক</h2>
+    <p class="note" style="margin:0 0 12px">মাস বেছে নিলেই ওই মাস পর্যন্ত প্রত্যেক সদস্য মোট কত টাকা জমা দিয়েছে তার ছক তৈরি হয়ে যাবে — ঠিক তোমার কাগজের ছকটার মতো। নতুন জমা যোগ হলেই হিসাব নিজে নিজে আপডেট হয়।</p>
+    <div class="fgrid">
+      <div><label>কোন মাস পর্যন্ত</label><select class="inp" id="totalsMonth" onchange="renderTotals()"></select></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn" onclick="printBlock('blkTotals')">🖨 ছক প্রিন্ট / PDF সেভ করো</button></div>
+  </div>
+  <div class="letter-wrap letter-block" id="blkTotals"><div class="letter" id="totalsSheet"></div></div>
 </section>
 
 <!-- ================= বকেয়া ================= -->
@@ -998,8 +1008,41 @@ var h = '<table><tr><th style="width:52px">ক্রমিক</th><th>নাম<
   sheet.classList.toggle('compact', paid.length > 26);
   renderSummary(); 
  renderStatement();
+  renderTotals();
 }
-var currentStmtId = ''; function fillStmtMembers() {   var sel = document.getElementById('stmtMember'); if (!sel) return null;   var cur = sel.value || currentStmtId;   sel.innerHTML = data.members.map(function (m) { return '<option value="' + m.id + '">' + m.id + ' — ' + esc(m.name) + '</option>'; }).join('');   if (cur && memberById(cur)) sel.value = cur;   return sel.value; } function openStatement(id) {   currentStmtId = id;   go('report');   renderStatement(id);   setTimeout(function () { document.getElementById('stmtPanel').scrollIntoView({ behavior: 'smooth' }); }, 60); } function renderStatement(id) {   var selVal = fillStmtMembers();   var m = memberById(id || selVal || currentStmtId); if (!m) return;   currentStmtId = m.id;   var sel = document.getElementById('stmtMember'); if (sel) sel.value = m.id;   var cm = curMonth();   var months = monthsBetween(m.join, cm);   var a = arrearsOf(m);   function dfmt(iso) { var p = (iso || '').split('-'); return p.length === 3 ? bn(p[2]) + '/' + bn(p[1]) + '/' + bn(p[0]) : bn(iso); }   var rows = '', n = 0;   months.forEach(function (mo) {     var deps = data.deposits.filter(function (d) { return d.memberId === m.id && d.month === mo; }).sort(function (x, y) { return x.date < y.date ? -1 : 1; });     if (deps.length) {       deps.forEach(function (d) {         n++;         rows += '<tr><td>' + bn(n) + '.</td><td>' + monthName(mo) + '</td><td>' + dfmt(d.date) + '</td><td>' + esc(d.receiptNo || '') + '</td><td class="amt">' + bn((+d.amount).toLocaleString('en-IN')) + '</td><td>জমা ✓</td></tr>';       });     } else {       n++;       rows += '<tr><td>' + bn(n) + '.</td><td>' + monthName(mo) + '</td><td>—</td><td>—</td><td class="amt">০</td><td style="color:#991b1b;font-weight:700">বকেয়া</td></tr>';     }   });   var html = '';   html += '<div class="lt-chok" style="margin-top:0">শান্তি ও উন্নয়ন পরিষদ</div>';   html += '<div style="text-align:center;margin-top:-8px">জয়সেনা, তেরখাদা, খুলনা</div>';   html += '<div style="text-align:center;font-weight:800;font-size:17px;margin:10px 0 4px">সদস্যের হিসাব বিবরণী (স্টেটমেন্ট)</div>';   html += '<div class="lt-to" style="margin-top:12px">নাম: <b>' + esc(m.name) + '</b><br>সদস্য আইডি: ' + m.id + (m.role ? ' · পদ: ' + esc(m.role) : '') + '<br>ঠিকানা: ' + esc([m.village, m.upazila, m.district].filter(Boolean).join(', ')) + (m.mobile ? '<br>মোবাইল: ' + esc(m.mobile) : '') + '<br>যোগদান: ' + monthName(m.join) + ' · বিবরণীর সময়কাল: ' + monthName(m.join) + ' হতে ' + monthName(cm) + ' পর্যন্ত</div>';   html += '<table class="lt-sum"><tr><th>ক্রমিক</th><th>মাস</th><th>জমার তারিখ</th><th>রসিদ নং</th><th class="amt">টাকা</th><th>অবস্থা</th></tr>' + rows + '</table>';   html += '<div class="lt-total">মোট পাওনা: ' + bn(months.length) + ' মাসের ' + bn((months.length * FEE).toLocaleString('en-IN')) + ' টাকা · মোট জমা: ' + bn(a.paid.toLocaleString('en-IN')) + ' টাকা (' + takaWords(a.paid) + ' টাকা মাত্র) · ' + (a.dueAmt > 0 ? 'বকেয়া: ' + bn(a.dueAmt.toLocaleString('en-IN')) + ' টাকা (' + bn(a.monthsBehind) + ' মাস)' : 'কোনো বকেয়া নেই ✓') + '</div>';   html += '<div class="lt-sign">প্রস্তুত করেছেন<br>রাকিবুল ইসলাম (ম্যানেজার)<br>শান্তি ও উন্নয়ন পরিষদ<br>তারিখঃ ' + dfmt(todayStr()) + '</div>';   document.getElementById('stmtSheet').innerHTML = html; } function fillRepYears() {
+var currentStmtId = ''; function fillStmtMembers() {   var sel = document.getElementById('stmtMember'); if (!sel) return null;   var cur = sel.value || currentStmtId;   sel.innerHTML = data.members.map(function (m) { return '<option value="' + m.id + '">' + m.id + ' — ' + esc(m.name) + '</option>'; }).join('');   if (cur && memberById(cur)) sel.value = cur;   return sel.value; } function openStatement(id) {   currentStmtId = id;   go('report');   renderStatement(id);   setTimeout(function () { document.getElementById('stmtPanel').scrollIntoView({ behavior: 'smooth' }); }, 60); } function renderStatement(id) {   var selVal = fillStmtMembers();   var m = memberById(id || selVal || currentStmtId); if (!m) return;   currentStmtId = m.id;   var sel = document.getElementById('stmtMember'); if (sel) sel.value = m.id;   var cm = curMonth();   var months = monthsBetween(m.join, cm);   var a = arrearsOf(m);   function dfmt(iso) { var p = (iso || '').split('-'); return p.length === 3 ? bn(p[2]) + '/' + bn(p[1]) + '/' + bn(p[0]) : bn(iso); }   var rows = '', n = 0;   months.forEach(function (mo) {     var deps = data.deposits.filter(function (d) { return d.memberId === m.id && d.month === mo; }).sort(function (x, y) { return x.date < y.date ? -1 : 1; });     if (deps.length) {       deps.forEach(function (d) {         n++;         rows += '<tr><td>' + bn(n) + '.</td><td>' + monthName(mo) + '</td><td>' + dfmt(d.date) + '</td><td>' + esc(d.receiptNo || '') + '</td><td class="amt">' + bn((+d.amount).toLocaleString('en-IN')) + '</td><td>জমা ✓</td></tr>';       });     } else {       n++;       rows += '<tr><td>' + bn(n) + '.</td><td>' + monthName(mo) + '</td><td>—</td><td>—</td><td class="amt">০</td><td style="color:#991b1b;font-weight:700">বকেয়া</td></tr>';     }   });   var html = '';   html += '<div class="lt-chok" style="margin-top:0">শান্তি ও উন্নয়ন পরিষদ</div>';   html += '<div style="text-align:center;margin-top:-8px">জয়সেনা, তেরখাদা, খুলনা</div>';   html += '<div style="text-align:center;font-weight:800;font-size:17px;margin:10px 0 4px">সদস্যের হিসাব বিবরণী (স্টেটমেন্ট)</div>';   html += '<div class="lt-to" style="margin-top:12px">নাম: <b>' + esc(m.name) + '</b><br>সদস্য আইডি: ' + m.id + (m.role ? ' · পদ: ' + esc(m.role) : '') + '<br>ঠিকানা: ' + esc([m.village, m.upazila, m.district].filter(Boolean).join(', ')) + (m.mobile ? '<br>মোবাইল: ' + esc(m.mobile) : '') + '<br>যোগদান: ' + monthName(m.join) + ' · বিবরণীর সময়কাল: ' + monthName(m.join) + ' হতে ' + monthName(cm) + ' পর্যন্ত</div>';   html += '<table class="lt-sum"><tr><th>ক্রমিক</th><th>মাস</th><th>জমার তারিখ</th><th>রসিদ নং</th><th class="amt">টাকা</th><th>অবস্থা</th></tr>' + rows + '</table>';   html += '<div class="lt-total">মোট পাওনা: ' + bn(months.length) + ' মাসের ' + bn((months.length * FEE).toLocaleString('en-IN')) + ' টাকা · মোট জমা: ' + bn(a.paid.toLocaleString('en-IN')) + ' টাকা (' + takaWords(a.paid) + ' টাকা মাত্র) · ' + (a.dueAmt > 0 ? 'বকেয়া: ' + bn(a.dueAmt.toLocaleString('en-IN')) + ' টাকা (' + bn(a.monthsBehind) + ' মাস)' : 'কোনো বকেয়া নেই ✓') + '</div>';   html += '<div class="lt-sign">প্রস্তুত করেছেন<br>রাকিবুল ইসলাম (ম্যানেজার)<br>শান্তি ও উন্নয়ন পরিষদ<br>তারিখঃ ' + dfmt(todayStr()) + '</div>';   document.getElementById('stmtSheet').innerHTML = html; } function fillTotalsMonths() {
+  var sel = document.getElementById('totalsMonth'); if (!sel) return null;
+  var cur = sel.value;
+  var last = '2026-12'; var cm = curMonth(); if (cm > last) last = cm;
+  var months = monthsBetween('2026-01', last);
+  sel.innerHTML = months.map(function (mo) { return '<option value="' + mo + '">' + monthName(mo) + ' পর্যন্ত</option>'; }).join('');
+  if (!cur) { var withData = data.deposits.map(function (d) { return d.month; }).sort(); cur = withData.length ? withData[withData.length - 1] : cm; }
+  sel.value = cur;
+  return sel.value;
+}
+function renderTotals() {
+  var upto = fillTotalsMonths(); if (!upto) return;
+  var parts = upto.split('-'); var y = +parts[0];
+  var lastDay = new Date(y, +parts[1], 0).getDate();
+  var dateStr = bn(String(lastDay).padStart(2, '0')) + '/' + bn(parts[1]) + '/' + bn(String(y).slice(2));
+  var ms = data.members.filter(function (m) { return m.join <= upto; }).slice().sort(function (a, b) { return a.join === b.join ? (a.id < b.id ? -1 : 1) : (a.join < b.join ? -1 : 1); });
+  var rows = '', grand = 0;
+  ms.forEach(function (m, i) {
+    var t = data.deposits.filter(function (d) { return d.memberId === m.id && d.month <= upto; }).reduce(function (sm, d) { return sm + (+d.amount); }, 0);
+    grand += t;
+    rows += '<tr><td>' + bn(i + 1) + '.</td><td>' + esc(m.name) + '</td><td class="amt">' + bn(t.toLocaleString('en-IN')) + '</td></tr>';
+  });
+  rows += '<tr><td></td><td style="text-align:right;font-weight:800">মোট=</td><td class="amt" style="font-weight:800">' + bn(grand.toLocaleString('en-IN')) + '</td></tr>';
+  var html = '';
+  html += '<div class="lt-body">শান্তি ও উন্নয়ন পরিষদের সদস্যদের যোগদানকালীন সময় হতে ' + dateStr + ' খ্রিঃ পর্যন্ত প্রত্যেক সদস্যদের মোট টাকার তথ্য নিম্নে "ছক" মোতাবেক দেওয়া হলোঃ</div>';
+  html += '<div class="lt-chok">"ছক"</div>';
+  html += '<table class="lt-sum"><tr><th>ক্রমিক নং</th><th>সদস্যের নাম</th><th class="amt">মোট টাকা</th></tr>' + rows + '</table>';
+  html += '<div class="lt-sign">রাকিবুল ইসলাম (ম্যানেজার)<br>শান্তি ও উন্নয়ন পরিষদ<br>জয়সেনা, তেরখাদা, খুলনা।</div>';
+  var sheet = document.getElementById('totalsSheet');
+  sheet.innerHTML = html;
+  sheet.classList.toggle('compact', ms.length > 24);
+}
+function fillRepYears() {
   var sel = document.getElementById('repYear'); if (!sel) return null;
   var years = {};
   data.deposits.forEach(function (d) { years[d.month.slice(0, 4)] = 1; });
