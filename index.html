@@ -97,12 +97,12 @@
 .letter table.lt-sum td.amt, .letter table.lt-sum th.amt { text-align:right; }
 .letter .lt-note { margin-top:16px; }
 .letter .lt-close { margin-top:18px; }
-.letter .lt-sign { text-align:right; margin-top:52px; line-height:1.6; }
+.letter .lt-sign { text-align:right; margin-top:68px; line-height:1.6; }
 .letter.compact { font-size:13.5px; line-height:1.5; }
 .letter.compact .lt-tables table { font-size:13px; }
 .letter.compact .lt-tables th, .letter.compact .lt-tables td { padding:2px 6px; } .
  letter.compact table.lt-sum th, .letter.compact table.lt-sum td { padding:2px 8px; font-size:13.5px; }
-.letter.compact .lt-sign { margin-top:26px; }
+.letter.compact .lt-sign { margin-top:50px; }
 @page { size: A4; margin: 13mm; }
 @media print {
   .letter { font-size:13.8px; line-height:1.52; padding:0; }
@@ -114,10 +114,10 @@
   .letter .lt-total { margin-top:10px; padding:5px 10px; }
   .letter .lt-note { margin-top:10px; }
   .letter .lt-close { margin-top:10px; }
-  .letter .lt-sign { margin-top:30px; }
+  .letter .lt-sign { margin-top:68px; }
   .letter.compact { font-size:12.8px; line-height:1.45; }
   .letter.compact .lt-tables table { font-size:12.4px; }
-  .letter.compact .lt-sign { margin-top:20px; }
+  .letter.compact .lt-sign { margin-top:50px; }
   header.top, nav.tabs, .toast, .overlay { display:none !important; }
   .view { display:none !important; }
   #view-report { display:block !important; }
@@ -1026,21 +1026,24 @@ function renderTotals() {
   var lastDay = new Date(y, +parts[1], 0).getDate();
   var dateStr = bn(String(lastDay).padStart(2, '0')) + '/' + bn(parts[1]) + '/' + bn(String(y).slice(2));
   var ms = data.members.filter(function (m) { return m.join <= upto; }).slice().sort(function (a, b) { return a.join === b.join ? (a.id < b.id ? -1 : 1) : (a.join < b.join ? -1 : 1); });
-  var rows = '', grand = 0;
-  ms.forEach(function (m, i) {
-    var t = data.deposits.filter(function (d) { return d.memberId === m.id && d.month <= upto; }).reduce(function (sm, d) { return sm + (+d.amount); }, 0);
-    grand += t;
-    rows += '<tr><td>' + bn(i + 1) + '.</td><td>' + esc(m.name) + '</td><td class="amt">' + bn(t.toLocaleString('en-IN')) + '</td></tr>';
-  });
-  rows += '<tr><td></td><td style="text-align:right;font-weight:800">মোট=</td><td class="amt" style="font-weight:800">' + bn(grand.toLocaleString('en-IN')) + '</td></tr>';
+    var totals = ms.map(function (m) { return data.deposits.filter(function (d) { return d.memberId === m.id && d.month <= upto; }).reduce(function (sm, d) { return sm + (+d.amount); }, 0); });
+  var grand = totals.reduce(function (sm, t) { return sm + t; }, 0);
+  var half = Math.ceil(ms.length / 2);
+  function cell(i) {
+    if (i >= ms.length) return '<td></td><td></td><td class="amt"></td>';
+    return '<td>' + bn(i + 1) + '.</td><td>' + esc(ms[i].name) + '</td><td class="amt">' + bn(totals[i].toLocaleString('en-IN')) + '</td>';
+  }
+  var rows = '';
+  for (var r = 0; r < half; r++) rows += '<tr>' + cell(r) + cell(r + half) + '</tr>';
+  rows += '<tr><td colspan="5" style="text-align:right;font-weight:800">মোট=</td><td class="amt" style="font-weight:800">' + bn(grand.toLocaleString('en-IN')) + '</td></tr>';
   var html = '';
   html += '<div class="lt-body">শান্তি ও উন্নয়ন পরিষদের সদস্যদের যোগদানকালীন সময় হতে ' + dateStr + ' খ্রিঃ পর্যন্ত প্রত্যেক সদস্যদের মোট টাকার তথ্য নিম্নে "ছক" মোতাবেক দেওয়া হলোঃ</div>';
   html += '<div class="lt-chok">"ছক"</div>';
-  html += '<table class="lt-sum"><tr><th>ক্রমিক নং</th><th>সদস্যের নাম</th><th class="amt">মোট টাকা</th></tr>' + rows + '</table>';
+  html += '<table class="lt-sum"><colgroup><col style="width:7%"><col style="width:35%"><col style="width:8%"><col style="width:7%"><col style="width:35%"><col style="width:8%"></colgroup><tr><th>ক্রমিক নং</th><th>সদস্যের নাম</th><th class="amt">মোট টাকা</th><th>ক্রমিক নং</th><th>সদস্যের নাম</th><th class="amt">মোট টাকা</th></tr>' + rows + '</table>';
   html += '<div class="lt-sign">রাকিবুল ইসলাম (ম্যানেজার)<br>শান্তি ও উন্নয়ন পরিষদ<br>জয়সেনা, তেরখাদা, খুলনা।</div>';
   var sheet = document.getElementById('totalsSheet');
   sheet.innerHTML = html;
-  sheet.classList.toggle('compact', ms.length > 24);
+  sheet.classList.add('compact');
 }
 function fillRepYears() {
   var sel = document.getElementById('repYear'); if (!sel) return null;
